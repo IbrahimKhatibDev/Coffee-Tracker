@@ -6,6 +6,7 @@ let tasteNotes = document.getElementById("tasteNotes");
 let doseIn = document.getElementById("doseIn");
 let doseOut = document.getElementById("doseOut");
 let errorLog = document.getElementById("errorContainer");
+let brewLogContainer = document.getElementById("brewLogContainer");
 
 let startTimer = document.getElementById("start");
 let stopTimer = document.getElementById("stop");
@@ -73,6 +74,26 @@ function dateToStr(date) {
   return `${formattedMinutes}:${formattedSeconds}.${formattedMillisecondToHundredths}`;
 }
 
+const renderCoffeeCard = () => {
+  
+  brewLogContainer.innerHTML = ""
+  for (let i = 0; i < brewLog.length; ++i) {
+    const brew = brewLog[i];
+    const card = document.createElement("div");
+    card.classList.add("brew-card");
+
+    card.innerHTML = `
+      <h3>${brew.coffeeType}</h3>
+      <p><strong>Grind Size:</strong> ${brew.grindSize}</p>
+      <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
+      <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
+      <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
+      <p><strong>Taste Notes:</strong> ${brew.tasteNotes || "N/A"}</p>
+      `;
+    brewLogContainer.appendChild(card);
+  }
+};
+
 const saveCoffeeLog = (event) => {
   let errLog = [];
   errorLog.innerHTML = "";
@@ -119,6 +140,7 @@ const saveCoffeeLog = (event) => {
       extractionTime: dateToStr(timerState.elapsedTime),
     };
     brewLog.push(coffeeBrew);
+    renderCoffeeCard();
     clearTime(event);
     resetForm();
     errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
