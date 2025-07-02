@@ -1,3 +1,4 @@
+// Get DOM elements for timer display and input fields
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
 let coffeeType = document.getElementById("coffeeType");
@@ -13,13 +14,16 @@ let roastLevel = document.getElementById("roastLevel");
 let machine = document.getElementById("machine");
 let grinder = document.getElementById("grinder");
 
+// Get DOM elements for timer buttons and save button
 let startTimer = document.getElementById("start");
 let stopTimer = document.getElementById("stop");
 let clearTimer = document.getElementById("clear");
 let saveButton = document.getElementById("saveButton");
 
+// Array to store all logged brews
 let brewLog = [];
 
+// Timer state tracking object
 const timerState = {
   startTime: 0,
   elapsedTime: 0,
@@ -27,6 +31,7 @@ const timerState = {
   isRunning: false,
 };
 
+// Start the extraction timer
 const start = (event) => {
   event.preventDefault();
   if (!timerState.isRunning) {
@@ -39,6 +44,7 @@ const start = (event) => {
   timerState.isRunning = true;
 };
 
+// Stop the timer and store elapsed time
 const stop = (event) => {
   if (event) {
     event.preventDefault();
@@ -48,6 +54,7 @@ const stop = (event) => {
   }
 };
 
+// Clear timer and reset display
 const clearTime = (event) => {
   if (event) {
     stop(event);
@@ -57,12 +64,14 @@ const clearTime = (event) => {
   }
 };
 
+// Reset form inputs and clear timer
 const resetForm = () => {
   clearTime();
   const form = document.querySelector(".coffee-tracker");
   form.reset();
 };
 
+// Format time (ms) into MM:SS.HH
 function dateToStr(date) {
   let totalMilliseconds = date;
   let minutes = Math.floor(totalMilliseconds / 60000);
@@ -79,6 +88,7 @@ function dateToStr(date) {
   return `${formattedMinutes}:${formattedSeconds}.${formattedMillisecondToHundredths}`;
 }
 
+// Render each saved brew as a card in the UI
 const renderCoffeeCard = () => {
   brewLogContainer.innerHTML = "";
   for (let i = 0; i < brewLog.length; ++i) {
@@ -96,17 +106,18 @@ const renderCoffeeCard = () => {
       <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
       <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
       <p><strong>Taste Notes:</strong> ${brew.tasteNotes || "N/A"}</p>
-      `;
+    `;
     brewLogContainer.appendChild(card);
   }
 };
 
+// Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
-  event.preventDefault(); // prevent default first
+  event.preventDefault();
   let errLog = [];
   errorLog.innerHTML = "";
 
-  // Clear previous input highlights
+  // Clear previous input error highlights
   [
     coffeeType,
     grindSize,
@@ -119,7 +130,7 @@ const saveCoffeeLog = (event) => {
     grinder,
   ].forEach((input) => input.classList.remove("input-error"));
 
-  // Validation checks
+  // Validation for each required field
   if (coffeeType.value.trim() === "") {
     errLog.push("Please enter the type of coffee you brewed.");
     coffeeType.classList.add("input-error");
@@ -170,7 +181,7 @@ const saveCoffeeLog = (event) => {
     grinder.classList.add("input-error");
   }
 
-  // If any errors found, display and stop save
+  // If validation failed, display errors
   if (errLog.length > 0) {
     for (let i = 0; i < errLog.length; ++i) {
       const li = document.createElement("li");
@@ -180,7 +191,7 @@ const saveCoffeeLog = (event) => {
     return;
   }
 
-  // Build brew object
+  // Create a new brew entry object
   const coffeeBrew = {
     coffeeType: coffeeType.value,
     grindSize: parseFloat(grindSize.value),
@@ -194,7 +205,7 @@ const saveCoffeeLog = (event) => {
     grinder: grinder.value,
   };
 
-  // Save and reset
+  // Save brew and update UI
   brewLog.push(coffeeBrew);
   renderCoffeeCard();
   clearTime(event);
@@ -202,6 +213,7 @@ const saveCoffeeLog = (event) => {
   errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
 };
 
+// Attach event listeners to buttons
 startTimer.addEventListener("click", start);
 stopTimer.addEventListener("click", stop);
 clearTimer.addEventListener("click", clearTime);
