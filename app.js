@@ -8,6 +8,11 @@ let doseOut = document.getElementById("doseOut");
 let errorLog = document.getElementById("errorContainer");
 let brewLogContainer = document.getElementById("brewLogContainer");
 
+let brand = document.getElementById("brand");
+let roastLevel = document.getElementById("roastLevel");
+let machine = document.getElementById("machine");
+let grinder = document.getElementById("grinder");
+
 let startTimer = document.getElementById("start");
 let stopTimer = document.getElementById("stop");
 let clearTimer = document.getElementById("clear");
@@ -75,8 +80,7 @@ function dateToStr(date) {
 }
 
 const renderCoffeeCard = () => {
-  
-  brewLogContainer.innerHTML = ""
+  brewLogContainer.innerHTML = "";
   for (let i = 0; i < brewLog.length; ++i) {
     const brew = brewLog[i];
     const card = document.createElement("div");
@@ -132,6 +136,10 @@ const saveCoffeeLog = (event) => {
   } else {
     event.preventDefault();
     const coffeeBrew = {
+      brand: brand.value,
+      roastLevel: roastLevel.value,
+      machine: machine.value,
+      grinder: grinder.value,
       coffeeType: coffeeType.value,
       grindSize: parseFloat(grindSize.value),
       doseIn: parseFloat(doseIn.value),
