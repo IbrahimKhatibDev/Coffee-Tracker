@@ -102,75 +102,104 @@ const renderCoffeeCard = () => {
 };
 
 const saveCoffeeLog = (event) => {
+  event.preventDefault(); // prevent default first
   let errLog = [];
   errorLog.innerHTML = "";
 
-  if (coffeeType.value === "") {
+  // Clear previous input highlights
+  [
+    coffeeType,
+    grindSize,
+    doseIn,
+    doseOut,
+    tasteNotes,
+    brand,
+    roastLevel,
+    machine,
+    grinder,
+  ].forEach((input) => input.classList.remove("input-error"));
+
+  // Validation checks
+  if (coffeeType.value.trim() === "") {
     errLog.push("Please enter the type of coffee you brewed.");
+    coffeeType.classList.add("input-error");
   }
+
   if (grindSize.value === "") {
     errLog.push("Please enter the grind size of the coffee you brewed.");
+    grindSize.classList.add("input-error");
+  } else if (grindSize.value <= 0 || grindSize.value > 60) {
+    errLog.push("Grind size must be between 1 and 60.");
+    grindSize.classList.add("input-error");
   }
-  if (grindSize.value <= 0 || grindSize.value > 60) {
-    errLog.push("Grind size cannot be less than 0 or larger than 60.");
-  }
+
   if (doseIn.value === "") {
-    errLog.push("Coffee dose cannot be less than 0 or greater than 60.");
+    errLog.push("Please enter the dose of coffee in.");
+    doseIn.classList.add("input-error");
+  } else if (doseIn.value <= 0 || doseIn.value > 60) {
+    errLog.push("Coffee dose (in) must be between 1 and 60.");
+    doseIn.classList.add("input-error");
   }
-  if (doseIn.value <= 0 || doseIn.value > 60) {
-    errLog.push(
-      "Coffee dose (Coffee in) cannot be less than 0 or greater than 60."
-    );
-  }
+
   if (timerState.elapsedTime <= 0 || !timerState.elapsedTime) {
-    errLog.push("Extraction time (timer) has to be larger than 0.");
+    errLog.push("Extraction time must be greater than 0.");
   }
-  if (doseOut.value <= 0) {
-    errLog.push("extracted coffee (Coffee out) cannot be less than 0.");
+
+  if (doseOut.value === "" || doseOut.value <= 0) {
+    errLog.push("Please enter a valid value for coffee out.");
+    doseOut.classList.add("input-error");
   }
+
   if (brand.value.trim() === "") {
     errLog.push("Please enter the brand of coffee.");
+    brand.classList.add("input-error");
   }
 
   if (roastLevel.value === "") {
     errLog.push("Please select a roast level.");
+    roastLevel.classList.add("input-error");
   }
 
   if (machine.value.trim() === "") {
     errLog.push("Please enter the machine you used.");
+    machine.classList.add("input-error");
   }
 
   if (grinder.value.trim() === "") {
     errLog.push("Please enter the grinder you used.");
+    grinder.classList.add("input-error");
   }
+
+  // If any errors found, display and stop save
   if (errLog.length > 0) {
     for (let i = 0; i < errLog.length; ++i) {
       const li = document.createElement("li");
       li.textContent = errLog[i];
       errorLog.appendChild(li);
     }
-    event.preventDefault();
     return;
-  } else {
-    event.preventDefault();
-    const coffeeBrew = {
-      brand: brand.value,
-      roastLevel: roastLevel.value,
-      machine: machine.value,
-      grinder: grinder.value,
-      coffeeType: coffeeType.value,
-      grindSize: parseFloat(grindSize.value),
-      doseIn: parseFloat(doseIn.value),
-      doseOut: parseFloat(doseOut.value),
-      tasteNotes: tasteNotes.value,
-      extractionTime: dateToStr(timerState.elapsedTime),
-    };
-    brewLog.push(coffeeBrew);
-    renderCoffeeCard();
-    clearTime(event);
-    resetForm();
-    errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
   }
+
+  // Build brew object
+  const coffeeBrew = {
+    coffeeType: coffeeType.value,
+    grindSize: parseFloat(grindSize.value),
+    doseIn: parseFloat(doseIn.value),
+    doseOut: parseFloat(doseOut.value),
+    tasteNotes: tasteNotes.value,
+    extractionTime: dateToStr(timerState.elapsedTime),
+    brand: brand.value,
+    roastLevel: roastLevel.value,
+    machine: machine.value,
+    grinder: grinder.value,
+  };
+
+  // Save and reset
+  brewLog.push(coffeeBrew);
+  renderCoffeeCard();
+  clearTime(event);
+  resetForm();
+  errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
 };
 
 startTimer.addEventListener("click", start);
