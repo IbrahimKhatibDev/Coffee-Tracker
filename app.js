@@ -1,7 +1,6 @@
 // Get DOM elements for timer display and input fields
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
-let coffeeType = document.getElementById("coffeeType");
 let grindSize = document.getElementById("grindSize");
 let tasteNotes = document.getElementById("tasteNotes");
 let doseIn = document.getElementById("doseIn");
@@ -119,7 +118,6 @@ const saveCoffeeLog = (event) => {
 
   // Clear previous input error highlights
   [
-    coffeeType,
     grindSize,
     doseIn,
     doseOut,
@@ -131,23 +129,18 @@ const saveCoffeeLog = (event) => {
   ].forEach((input) => input.classList.remove("input-error"));
 
   // Validation for each required field
-  if (coffeeType.value.trim() === "") {
-    errLog.push("Please enter the type of coffee you brewed.");
-    coffeeType.classList.add("input-error");
-  }
-
-  if (grindSize.value === "") {
+  if (grindSize.value.trim() === "") {
     errLog.push("Please enter the grind size of the coffee you brewed.");
     grindSize.classList.add("input-error");
-  } else if (grindSize.value <= 0 || grindSize.value > 60) {
+  } else if (grindSize.value.trim() <= 0 || grindSize.value.trim() > 60) {
     errLog.push("Grind size must be between 1 and 60.");
     grindSize.classList.add("input-error");
   }
 
-  if (doseIn.value === "") {
+  if (doseIn.value.trim() === "") {
     errLog.push("Please enter the dose of coffee in.");
     doseIn.classList.add("input-error");
-  } else if (doseIn.value <= 0 || doseIn.value > 60) {
+  } else if (doseIn.value.trim() <= 0 || doseIn.value.trim() > 60) {
     errLog.push("Coffee dose (in) must be between 1 and 60.");
     doseIn.classList.add("input-error");
   }
@@ -156,7 +149,7 @@ const saveCoffeeLog = (event) => {
     errLog.push("Extraction time must be greater than 0.");
   }
 
-  if (doseOut.value === "" || doseOut.value <= 0) {
+  if (doseOut.value.trim() === "" || doseOut.value <= 0) {
     errLog.push("Please enter a valid value for coffee out.");
     doseOut.classList.add("input-error");
   }
@@ -193,16 +186,15 @@ const saveCoffeeLog = (event) => {
 
   // Create a new brew entry object
   const coffeeBrew = {
-    coffeeType: coffeeType.value,
-    grindSize: parseFloat(grindSize.value),
-    doseIn: parseFloat(doseIn.value),
-    doseOut: parseFloat(doseOut.value),
-    tasteNotes: tasteNotes.value,
+    grindSize: parseFloat(grindSize.value.trim()),
+    doseIn: parseFloat(doseIn.value).trim(),
+    doseOut: parseFloat(doseOut.value).trim(),
+    tasteNotes: tasteNotes.value.trim(),
     extractionTime: dateToStr(timerState.elapsedTime),
-    brand: brand.value,
+    brand: brand.value.trim(),
     roastLevel: roastLevel.value,
-    machine: machine.value,
-    grinder: grinder.value,
+    machine: machine.value.trim(),
+    grinder: grinder.value.trim(),
   };
 
   // Save brew and update UI
