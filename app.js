@@ -128,6 +128,21 @@ const saveCoffeeLog = (event) => {
   if (doseOut.value <= 0) {
     errLog.push("extracted coffee (Coffee out) cannot be less than 0.");
   }
+  if (brand.value.trim() === "") {
+    errLog.push("Please enter the brand of coffee.");
+  }
+
+  if (roastLevel.value === "") {
+    errLog.push("Please select a roast level.");
+  }
+
+  if (machine.value.trim() === "") {
+    errLog.push("Please enter the machine you used.");
+  }
+
+  if (grinder.value.trim() === "") {
+    errLog.push("Please enter the grinder you used.");
+  }
   if (errLog.length > 0) {
     for (let i = 0; i < errLog.length; ++i) {
       const li = document.createElement("li");
