@@ -87,7 +87,10 @@ const renderCoffeeCard = () => {
     card.classList.add("brew-card");
 
     card.innerHTML = `
-      <h3>${brew.coffeeType}</h3>
+      <h3>${brew.brand}</h3>
+      <p><strong>Roast Level:</strong> ${brew.roastLevel || "N/A"}</p>
+      <p><strong>Machine:</strong> ${brew.machine || "N/A"}</p>
+      <p><strong>Grinder:</strong> ${brew.grinder || "N/A"}</p>
       <p><strong>Grind Size:</strong> ${brew.grindSize}</p>
       <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
       <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
