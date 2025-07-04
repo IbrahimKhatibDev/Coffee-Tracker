@@ -89,7 +89,8 @@ body {
 }
 
 .button-group button:hover {
-  background-color: #5b3d2f;
+  background-color: #50362a;
+  transform: scale(1.02);
 }
 
 .error-messages {
@@ -102,8 +103,18 @@ body {
   background-color: #ffeeee;
 }
 
-/* cards */
+/* start and stop button */
+#startStop.start-button {
+  background-color: hsl(106, 34%, 33%);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
+#startStop.stop-button {
+  background-color: #b33e3e;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* cards */
 .brew-card {
   background-color: #fffdf9;
   border: 1px solid #e0dcd2;

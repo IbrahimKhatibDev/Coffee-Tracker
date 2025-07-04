@@ -55,15 +55,17 @@ const stop = (event) => {
 // Change single button to start/stop and call each function if clicked on
 const startStop = (event) => {
   if (!timerState.isRunning) {
-    start(event)
+    start(event);
+    startStopTimer.classList.remove("start-button");
     startStopTimer.innerHTML = "Stop";
-  }
-  else {
+    startStopTimer.classList.add("stop-button");
+  } else if (timerState.isRunning) {
+    stop(event);
+    startStopTimer.classList.remove("stop-button");
     startStopTimer.innerHTML = "Start";
-    stop (event)
+    startStopTimer.classList.add("start-button");
   }
-
-}
+};
 
 // Clear timer and reset display
 const clearTime = (event) => {
@@ -125,6 +127,7 @@ const renderCoffeeCard = () => {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
+  console.log("hello")
   let errLog = [];
   errorLog.innerHTML = "";
 
