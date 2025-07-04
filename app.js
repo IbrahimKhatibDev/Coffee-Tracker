@@ -33,10 +33,11 @@ const timerState = {
 const start = (event) => {
   event.preventDefault();
   if (!timerState.isRunning) {
+    extractionTimeDisplay.readOnly = true;
     const initTimer = Date.now();
     timerState.interval = setInterval(function () {
       timerState.elapsedTime = Date.now() - initTimer + timerState.startTime;
-      extractionTimeDisplay.innerHTML = dateToStr(timerState.elapsedTime);
+      extractionTimeDisplay.value = dateToStr(timerState.elapsedTime);
     }, 10);
   }
   timerState.isRunning = true;
@@ -46,6 +47,7 @@ const start = (event) => {
 const stop = (event) => {
   if (event) {
     event.preventDefault();
+    extractionTimeDisplay.readOnly = false;
     timerState.isRunning = false;
     timerState.startTime = timerState.elapsedTime;
     clearInterval(timerState.interval);
@@ -71,7 +73,10 @@ const startStop = (event) => {
 const clearTime = (event) => {
   if (event) {
     stop(event);
-    extractionTimeDisplay.innerHTML = "00:00.00";
+    extractionTimeDisplay.value = "00:00.00";
+    startStopTimer.classList.remove("stop-button");
+    startStopTimer.innerHTML = "Start";
+    startStopTimer.classList.add("start-button");
     timerState.startTime = 0;
     timerState.elapsedTime = 0;
   }
@@ -127,7 +132,7 @@ const renderCoffeeCard = () => {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
-  console.log("hello")
+  console.log("hello");
   let errLog = [];
   errorLog.innerHTML = "";
 

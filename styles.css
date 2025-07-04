@@ -158,3 +158,19 @@ body {
   flex-direction: column;
   gap: 1.2rem;
 }
+/* extraction time editable */
+#extractionTime {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #444;
+  background: none;
+  border: none;
+  text-align: center;
+  width: 100px;
+  outline: none;
+  padding: 0%;
+}
+
+#extractionTime:read-only {
+  cursor: default;
+}
