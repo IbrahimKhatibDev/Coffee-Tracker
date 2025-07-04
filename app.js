@@ -14,8 +14,7 @@ let machine = document.getElementById("machine");
 let grinder = document.getElementById("grinder");
 
 // Get DOM elements for timer buttons and save button
-let startTimer = document.getElementById("start");
-let stopTimer = document.getElementById("stop");
+let startStopTimer = document.getElementById("startStop");
 let clearTimer = document.getElementById("clear");
 let saveButton = document.getElementById("saveButton");
 
@@ -52,6 +51,19 @@ const stop = (event) => {
     clearInterval(timerState.interval);
   }
 };
+
+// Change single button to start/stop and call each function if clicked on
+const startStop = (event) => {
+  if (!timerState.isRunning) {
+    start(event)
+    startStopTimer.innerHTML = "Stop";
+  }
+  else {
+    startStopTimer.innerHTML = "Start";
+    stop (event)
+  }
+
+}
 
 // Clear timer and reset display
 const clearTime = (event) => {
@@ -206,7 +218,6 @@ const saveCoffeeLog = (event) => {
 };
 
 // Attach event listeners to buttons
-startTimer.addEventListener("click", start);
-stopTimer.addEventListener("click", stop);
+startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
