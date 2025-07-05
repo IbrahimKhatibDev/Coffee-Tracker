@@ -43,6 +43,22 @@ const start = (event) => {
   timerState.isRunning = true;
 };
 
+extractionTimeDisplay.addEventListener("blur", function(){
+  let minutesArray = extractionTimeDisplay.value.split(":");
+  let minutes = minutesArray[0];
+
+  let secondsArray = minutesArray[1].split(".");
+  let seconds = secondsArray[0];
+
+  let milliseconds = secondsArray[1];
+
+  let totalMilliseconds = (minutes * 60000) + (seconds * 1000) + (milliseconds * 10);
+
+  console.log(minutes);
+  console.log(seconds);
+  console.log(milliseconds);
+})
+
 // Stop the timer and store elapsed time
 const stop = (event) => {
   if (event) {
@@ -132,7 +148,6 @@ const renderCoffeeCard = () => {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
-  console.log("hello");
   let errLog = [];
   errorLog.innerHTML = "";
 
@@ -165,7 +180,7 @@ const saveCoffeeLog = (event) => {
     doseIn.classList.add("input-error");
   }
 
-  if (timerState.elapsedTime <= 0 || !timerState.elapsedTime) {
+  if (timerState.elapsedTime <= 0 || extractionTimeDisplay.value <= 0) {
     errLog.push("Extraction time must be greater than 0.");
   }
 
@@ -207,8 +222,8 @@ const saveCoffeeLog = (event) => {
   // Create a new brew entry object
   const coffeeBrew = {
     grindSize: parseFloat(grindSize.value.trim()),
-    doseIn: parseFloat(doseIn.value).trim(),
-    doseOut: parseFloat(doseOut.value).trim(),
+    doseIn: parseFloat(doseIn.value.trim()),
+    doseOut: parseFloat(doseOut.value.trim()),
     tasteNotes: tasteNotes.value.trim(),
     extractionTime: dateToStr(timerState.elapsedTime),
     brand: brand.value.trim(),
@@ -226,6 +241,7 @@ const saveCoffeeLog = (event) => {
 };
 
 // Attach event listeners to buttons
+
 startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
