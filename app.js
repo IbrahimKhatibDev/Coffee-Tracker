@@ -50,9 +50,9 @@ extractionTimeDisplay.addEventListener("blur", function(){
   let secondsArray = minutesArray[1].split(".");
   let seconds = secondsArray[0];
 
-  let milliseconds = secondsArray[1];
+  let hundredths = secondsArray[1];
 
-  let totalMilliseconds = (minutes * 60000) + (seconds * 1000) + (milliseconds * 10);
+  let totalMilliseconds = (minutes * 60000) + (seconds * 1000) + (hundredths * 10);
 
   console.log(minutes);
   console.log(seconds);
