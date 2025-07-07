@@ -64,11 +64,26 @@ body {
 
 /* Timer display */
 #extractionTime {
+  
+}
+
+#extractionTime {
   font-size: 1.5rem;
   font-weight: bold;
   color: #444;
   margin: 0.5rem 0;
+  background:rgba(0, 0, 0, 0.116);
+  border: none;
+  text-align: center;
+  width: 100px;
+  outline: none;
+  padding: 0%;
 }
+
+#extractionTime:read-only {
+  cursor: default;
+}
+
 
 /* Button group */
 .button-group {
@@ -158,19 +173,4 @@ body {
   flex-direction: column;
   gap: 1.2rem;
 }
-/* extraction time editable */
-#extractionTime {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #444;
-  background: none;
-  border: none;
-  text-align: center;
-  width: 100px;
-  outline: none;
-  padding: 0%;
-}
 
-#extractionTime:read-only {
-  cursor: default;
-}

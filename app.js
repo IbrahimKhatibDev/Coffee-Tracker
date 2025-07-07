@@ -20,6 +20,7 @@ let saveButton = document.getElementById("saveButton");
 
 // Array to store all logged brews
 let brewLog = [];
+let errLog = [];
 
 // Timer state tracking object
 const timerState = {
@@ -43,21 +44,65 @@ const start = (event) => {
   timerState.isRunning = true;
 };
 
-extractionTimeDisplay.addEventListener("blur", function(){
+extractionTimeDisplay.addEventListener("blur", function () {
+  errorLog.innerHTML = "";
+  errLog = []
+  let inputString = extractionTimeDisplay.value;
+  let formattedString = validateStringInput(inputString);
+
+  if (formattedString === null) {
+    errLog.push(
+      "Please ensure that the timer entered is correctly formatted (e.g. 01:00.34)"
+    );
+    extractionTimeDisplay.value = "00:00.00";
+  }
+  if (errLog.length > 0) {
+    for (let i = 0; i < errLog.length; ++i) {
+      const li = document.createElement("li");
+      li.textContent = errLog[i];
+      errorLog.appendChild(li);
+    }
+    return;
+  }
+
+  extractionTimeDisplay.value = formattedString;
+
   let minutesArray = extractionTimeDisplay.value.split(":");
   let minutes = minutesArray[0];
-
   let secondsArray = minutesArray[1].split(".");
   let seconds = secondsArray[0];
-
   let hundredths = secondsArray[1];
 
-  let totalMilliseconds = (minutes * 60000) + (seconds * 1000) + (hundredths * 10);
+  let totalMilliseconds = Number(minutes) * 60000 + Number(seconds) * 1000 + Number(hundredths) * 10;
 
-  console.log(minutes);
-  console.log(seconds);
-  console.log(milliseconds);
-})
+  timerState.elapsedTime = totalMilliseconds;
+  timerState.startTime = totalMilliseconds;
+});
+
+const validateStringInput = (str) => {
+  // split the string into 3 (split at ":" and "." for mins, secs, and hundrths)
+  if (str === null || str === "") {
+    return null;
+  } else if (!str.includes(":") && !str.includes(".")) {
+    return null;
+  }
+  let minutesArray = str.split(":");
+  let minutes = minutesArray[0];
+  let secondsArray = minutesArray[1].split(".");
+  let seconds = secondsArray[0];
+  let hundredths = secondsArray[1];
+
+  if (isNaN(minutes) || isNaN(seconds) || isNaN(hundredths)) {
+    return null;
+  } else if (Number(seconds) >= 60 || Number(hundredths) >= 100) {
+    return null;
+  }
+
+  minutes = minutes.padStart(2, "0");
+  seconds = seconds.padStart(2, "0");
+  hundredths = hundredths.padStart(2, "0");
+  return `${minutes}:${seconds}.${hundredths}`;
+};
 
 // Stop the timer and store elapsed time
 const stop = (event) => {
@@ -148,7 +193,6 @@ const renderCoffeeCard = () => {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
-  let errLog = [];
   errorLog.innerHTML = "";
 
   // Clear previous input error highlights
