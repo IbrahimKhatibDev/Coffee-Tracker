@@ -6,7 +6,7 @@ const body = document.body;
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
 let grindSize = document.getElementById("grindSize");
-let tasteNotes = document.getElementById("tasteNotes");
+let observations = document.getElementById("observations");
 let doseIn = document.getElementById("doseIn");
 let doseOut = document.getElementById("doseOut");
 let errorLog = document.getElementById("errorContainer");
@@ -72,7 +72,7 @@ const start = (event) => {
 
 extractionTimeDisplay.addEventListener("blur", function () {
   errorLog.innerHTML = "";
-  errLog = []
+  errLog = [];
   let inputString = extractionTimeDisplay.value;
   let formattedString = validateStringInput(inputString);
 
@@ -99,7 +99,8 @@ extractionTimeDisplay.addEventListener("blur", function () {
   let seconds = secondsArray[0];
   let hundredths = secondsArray[1];
 
-  let totalMilliseconds = Number(minutes) * 60000 + Number(seconds) * 1000 + Number(hundredths) * 10;
+  let totalMilliseconds =
+    Number(minutes) * 60000 + Number(seconds) * 1000 + Number(hundredths) * 10;
 
   timerState.elapsedTime = totalMilliseconds;
   timerState.startTime = totalMilliseconds;
@@ -226,7 +227,7 @@ const saveCoffeeLog = (event) => {
     grindSize,
     doseIn,
     doseOut,
-    tasteNotes,
+    observations,
     brand,
     roastLevel,
     machine,
@@ -255,7 +256,7 @@ const saveCoffeeLog = (event) => {
   }
 
   if (doseOut.value.trim() === "" || doseOut.value <= 0) {
-    errLog.push("Please enter a valid value for coffee out.");
+    errLog.push("Please enter a valid number for coffee out.");
     doseOut.classList.add("input-error");
   }
 
@@ -294,7 +295,7 @@ const saveCoffeeLog = (event) => {
     grindSize: parseFloat(grindSize.value.trim()),
     doseIn: parseFloat(doseIn.value.trim()),
     doseOut: parseFloat(doseOut.value.trim()),
-    tasteNotes: tasteNotes.value.trim(),
+    observations: observations.value.trim(),
     extractionTime: dateToStr(timerState.elapsedTime),
     brand: brand.value.trim(),
     roastLevel: roastLevel.value,
@@ -302,33 +303,67 @@ const saveCoffeeLog = (event) => {
     grinder: grinder.value.trim(),
   };
 
+  // last used fields for loading in
+  let lastUsed = {
+    brand: brand.value,
+    roastLevel: roastLevel.value,
+    machine: machine.value,
+    grinder: grinder.value,
+  };
+
   // Save brew and update UI
   brewLog.push(coffeeBrew);
 
   // save to local storage on save
-  stringifiedBrewLog = localStorage.setItem("brewLog", JSON.stringify(brewLog));
+  localStorage.setItem("brewLog", JSON.stringify(brewLog));
+  localStorage.setItem("lastUsed", JSON.stringify(lastUsed));
 
   // render card and clear form, display save message
   renderCoffeeCard();
   clearTime(event);
   resetForm();
+
+  if (storedPreferences) {
+    const loadPreferences = JSON.parse(storedPreferences);
+    brand.value = loadPreferences.brand;
+    roastLevel.value = loadPreferences.roastLevel;
+    machine.value = loadPreferences.machine;
+    grinder.value = loadPreferences.grinder;
+  } else {
+    console.log("No saved preferences found in localStorage.");
+  }
+
   errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
 };
 
+// load from local storage
 const loadSavedBrewsFromLocalStorage = () => {
-    storedBrewLog = localStorage.getItem("brewLog");
+  storedBrewLog = localStorage.getItem("brewLog");
+  storedPreferences = localStorage.getItem("lastUsed");
 
-  if (storedBrewLog){
-    const loadBrewLogs = JSON.parse(storedBrewLog);
-    brewLog.push(loadBrewLogs)
+  if (storedBrewLog) {
+    brewLog = JSON.parse(storedBrewLog);
     renderCoffeeCard();
   } else {
     console.log("No saved brews found in localStorage.");
   }
+
+  if (storedPreferences) {
+    const loadPreferences = JSON.parse(storedPreferences);
+    brand.value = loadPreferences.brand;
+    roastLevel.value = loadPreferences.roastLevel;
+    machine.value = loadPreferences.machine;
+    grinder.value = loadPreferences.grinder;
+  } else {
+    console.log("No saved preferences found in localStorage.");
+  }
+
 };
 
+// Load brews from local storage
+loadSavedBrewsFromLocalStorage();
+
 // Attach event listeners to buttons
-window.addEventListener("load", loadSavedBrewsFromLocalStorage);
 startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
