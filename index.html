@@ -25,7 +25,7 @@
 
                 <div class="input-group">
                     <label for="brand">Brand of Coffee:</label>
-                    <input type="text" id="brand" />
+                    <input type="text" placeholder="(e.g. Rogue wave coffee)" id="brand" />
                 </div>
 
                 <div class="input-group">
@@ -40,22 +40,22 @@
 
                 <div class="input-group">
                     <label for="machine">Machine Used:</label>
-                    <input type="text" id="machine" />
+                    <input type="text" placeholder="(e.g. Breville Barista Express)" id="machine" />
                 </div>
 
                 <div class="input-group">
                     <label for="grinder">Grinder Used:</label>
-                    <input type="text" id="grinder" />
+                    <input type="text" placeholder="(e.g. Fellow Opus Grinder)" id="grinder" />
                 </div>
 
                 <div class="input-group">
                     <label for="grindSize">Grind Size (e.g. 5):</label>
-                    <input type="number" id="grindSize" />
+                    <input type="number" id="grindSize" placeholder="(e.g. 5)" min="0" max="60" />
                 </div>
 
                 <div class="input-group">
                     <label for="doseIn">Coffee In (g):</label>
-                    <input type="number" id="doseIn" />
+                    <input type="number" id="doseIn" placeholder="(e.g. 18g)" min="0" max="60" />
                 </div>
 
                 <div class="input-group">
@@ -69,11 +69,22 @@
 
                 <div class="input-group">
                     <label for="doseOut">Coffee Out (g):</label>
-                    <input type="textarea" id="doseOut" />
+                    <input type="textarea" id="doseOut" placeholder="(e.g. 36g)" min="0" max="100" />
                 </div>
 
                 <div class="input-group">
-                    <label for="observations">Observations:</label>
+                    <label for="tastingNotesInput">Tasting Notes:</label>
+
+                    <div id="tastingNotesWrapper" class="tags-wrapper">
+                        <input type="text" id="tastingNotesInput"
+                            placeholder="Type and press Enter (e.g. chocolate, citrus...)" autocomplete="off" />
+                    </div>
+
+                    <ul id="tastingSuggestions" class="autocomplete-list"></ul>
+                </div>
+
+                <div class="input-group">
+                    <label for="observations">Additional Observations:</label>
                     <textarea id="observations" rows="4"
                         placeholder="Write any notes, thoughts, or observations here..."></textarea>
                 </div>

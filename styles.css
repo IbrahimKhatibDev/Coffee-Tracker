@@ -159,6 +159,7 @@ body.dark-mode #observations {
   background-color: #333;
   color: #f4f4f4;
   border: 1px solid #555;
+  transition: background-color 0.2s ease;
 }
 
 

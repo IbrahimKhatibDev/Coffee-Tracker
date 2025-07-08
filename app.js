@@ -27,7 +27,6 @@ let brewLog = [];
 let errLog = [];
 
 // Local Storage variables
-let stringifiedBrewLog;
 let storedBrewLog;
 let storedPreferences;
 
@@ -217,6 +216,9 @@ const renderCoffeeCard = () => {
   }
 };
 
+
+
+
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
@@ -228,6 +230,7 @@ const saveCoffeeLog = (event) => {
     doseIn,
     doseOut,
     observations,
+    tasteNotes,
     brand,
     roastLevel,
     machine,
@@ -295,6 +298,7 @@ const saveCoffeeLog = (event) => {
     grindSize: parseFloat(grindSize.value.trim()),
     doseIn: parseFloat(doseIn.value.trim()),
     doseOut: parseFloat(doseOut.value.trim()),
+    tasteNotes: tasteNotes.value.trim(),
     observations: observations.value.trim(),
     extractionTime: dateToStr(timerState.elapsedTime),
     brand: brand.value.trim(),
@@ -357,7 +361,6 @@ const loadSavedBrewsFromLocalStorage = () => {
   } else {
     console.log("No saved preferences found in localStorage.");
   }
-
 };
 
 // Load brews from local storage
@@ -367,3 +370,5 @@ loadSavedBrewsFromLocalStorage();
 startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
+
+
