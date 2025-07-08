@@ -64,10 +64,6 @@ body {
 
 /* Timer display */
 #extractionTime {
-  
-}
-
-#extractionTime {
   font-size: 1.5rem;
   font-weight: bold;
   color: #444;
@@ -174,3 +170,50 @@ body {
   gap: 1.2rem;
 }
 
+/* ---------- Mobile View (up to 600px) ---------- */
+@media (max-width: 600px) {
+
+  .container {
+    padding: 1rem;
+  }
+
+  .section h2 {
+    font-size: 1.3rem;
+  }
+
+  .input-group input,
+  .input-group select {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group button {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  #extractionTime {
+    font-size: 1.2rem;
+    width: 100%;
+  }
+
+  .brew-card {
+    padding: 1rem;
+  }
+
+  .brew-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .brew-card p {
+    font-size: 0.9rem;
+  }
+
+  .cards {
+    gap: 1rem;
+  }
+}
