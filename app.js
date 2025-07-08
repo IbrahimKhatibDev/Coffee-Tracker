@@ -37,6 +37,9 @@ const timerState = {
 // Load preference
 if (localStorage.getItem("theme") === "dark") {
   body.classList.add("dark-mode");
+  darkToggle.textContent = "☀️";
+} else {
+  darkToggle.textContent = "🌙";
 }
 
 // Toggle theme
@@ -44,6 +47,8 @@ darkToggle.addEventListener("click", () => {
   body.classList.toggle("dark-mode");
   const theme = body.classList.contains("dark-mode") ? "dark" : "light";
   localStorage.setItem("theme", theme);
+
+  darkToggle.textContent = theme === "dark" ? "☀️" : "🌙";
 });
 
 // Start the extraction timer
