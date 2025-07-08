@@ -1,3 +1,7 @@
+// Dark Mode
+const darkToggle = document.getElementById("darkModeToggle");
+const body = document.body;
+
 // Get DOM elements for timer display and input fields
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
@@ -29,6 +33,18 @@ const timerState = {
   interval: null,
   isRunning: false,
 };
+
+// Load preference
+if (localStorage.getItem("theme") === "dark") {
+  body.classList.add("dark-mode");
+}
+
+// Toggle theme
+darkToggle.addEventListener("click", () => {
+  body.classList.toggle("dark-mode");
+  const theme = body.classList.contains("dark-mode") ? "dark" : "light";
+  localStorage.setItem("theme", theme);
+});
 
 // Start the extraction timer
 const start = (event) => {
