@@ -26,6 +26,11 @@ let saveButton = document.getElementById("saveButton");
 let brewLog = [];
 let errLog = [];
 
+// Local Storage variables
+let stringifiedBrewLog;
+let storedBrewLog;
+let storedPreferences;
+
 // Timer state tracking object
 const timerState = {
   startTime: 0,
@@ -299,14 +304,31 @@ const saveCoffeeLog = (event) => {
 
   // Save brew and update UI
   brewLog.push(coffeeBrew);
+
+  // save to local storage on save
+  stringifiedBrewLog = localStorage.setItem("brewLog", JSON.stringify(brewLog));
+
+  // render card and clear form, display save message
   renderCoffeeCard();
   clearTime(event);
   resetForm();
   errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
 };
 
-// Attach event listeners to buttons
+const loadSavedBrewsFromLocalStorage = () => {
+    storedBrewLog = localStorage.getItem("brewLog");
 
+  if (storedBrewLog){
+    const loadBrewLogs = JSON.parse(storedBrewLog);
+    brewLog.push(loadBrewLogs)
+    renderCoffeeCard();
+  } else {
+    console.log("No saved brews found in localStorage.");
+  }
+};
+
+// Attach event listeners to buttons
+window.addEventListener("load", loadSavedBrewsFromLocalStorage);
 startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
