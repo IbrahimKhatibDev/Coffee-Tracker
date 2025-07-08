@@ -1,19 +1,46 @@
-/* Global styles */
+/* -------------------- THEME VARIABLES -------------------- */
+:root {
+  --bg-color: #f4f4f4;
+  --text-color: #333;
+  --card-bg: #fffdf9;
+  --card-border: #e0dcd2;
+  --accent-color: #6f4e37;
+  --button-hover: #50362a;
+  --input-bg: #ffffff;
+  --input-border: #ccc;
+  --highlight-error: #ffeeee;
+  --highlight-error-border: red;
+}
+
+/* -------------------- GLOBAL STYLES -------------------- */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 /* Navigation bar */
 .navbar {
-  background-color: #6f4e37;
+  background-color: var(--accent-color);
   color: white;
   padding: 1rem 2rem;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Dark mode toggle button */
+.dark-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
 }
 
 /* Main container */
@@ -21,7 +48,7 @@ body {
   max-width: 600px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
@@ -30,7 +57,7 @@ body {
 .section h2 {
   text-align: center;
   margin-bottom: 1.5rem;
-  color: #6f4e37;
+  color: var(--accent-color);
 }
 
 /* Input group styling */
@@ -38,37 +65,30 @@ body {
   margin-bottom: 1.25rem;
 }
 
-.input-group select {
-  width: 100%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
-}
-
-
 .input-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
   width: 100%;
   padding: 0.6rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
+  color: var(--text-color);
 }
 
 /* Timer display */
 #extractionTime {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #444;
+  color: var(--text-color);
   margin: 0.5rem 0;
-  background:rgba(0, 0, 0, 0.116);
+  background: rgba(0, 0, 0, 0.08);
   border: none;
   text-align: center;
   width: 100px;
@@ -80,7 +100,6 @@ body {
   cursor: default;
 }
 
-
 /* Button group */
 .button-group {
   display: flex;
@@ -91,60 +110,60 @@ body {
   flex: 1;
   padding: 0.7rem;
   font-size: 1rem;
-  background-color: #6f4e37;
+  background-color: var(--accent-color);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .button-group button:hover {
-  background-color: #50362a;
+  background-color: var(--button-hover);
   transform: scale(1.02);
 }
 
+/* Timer Start/Stop Button Colors */
+#startStop.start-button {
+  background-color: hsl(106, 34%, 33%);
+}
+
+#startStop.stop-button {
+  background-color: #b33e3e;
+}
+
+/* Error messages */
 .error-messages {
   color: red;
   margin-bottom: 1rem;
   font-weight: bold;
 }
+
 .input-error {
-  border-color: red;
-  background-color: #ffeeee;
+  border-color: var(--highlight-error-border);
+  background-color: var(--highlight-error);
 }
 
-/* start and stop button */
-#startStop.start-button {
-  background-color: hsl(106, 34%, 33%);
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-#startStop.stop-button {
-  background-color: #b33e3e;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-/* cards */
+/* Cards */
 .brew-card {
-  background-color: #fffdf9;
-  border: 1px solid #e0dcd2;
-  border-left: 6px solid #6f4e37;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 6px solid var(--accent-color);
   padding: 1.2rem 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .brew-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .brew-card h3 {
   margin-top: 0;
   font-size: 1.3rem;
-  color: #6f4e37;
+  color: var(--accent-color);
   margin-bottom: 0.5rem;
 }
 
@@ -155,7 +174,7 @@ body {
 }
 
 .brew-card p strong {
-  color: #333;
+  color: var(--text-color);
 }
 
 .cards-section {
@@ -170,9 +189,22 @@ body {
   gap: 1.2rem;
 }
 
-/* ---------- Mobile View (up to 600px) ---------- */
-@media (max-width: 600px) {
+/* -------------------- DARK MODE -------------------- */
+body.dark-mode {
+  --bg-color: #1e1e1e;
+  --text-color: #e0e0e0;
+  --card-bg: #2c2c2c;
+  --card-border: #3d3d3d;
+  --accent-color: #8b5d3c;
+  --button-hover: #a36e4c;
+  --input-bg: #2a2a2a;
+  --input-border: #555;
+  --highlight-error: #5c1d1d;
+  --highlight-error-border: #ff5e5e;
+}
 
+/* -------------------- RESPONSIVE (Mobile) -------------------- */
+@media (max-width: 600px) {
   .container {
     padding: 1rem;
   }
