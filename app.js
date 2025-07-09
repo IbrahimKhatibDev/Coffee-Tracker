@@ -5,6 +5,9 @@ const body = document.body;
 // Get DOM elements for timer display and input fields
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
+let tagList = document.getElementById("tagList");
+let tastingNotesWrapper = document.getElementById("tastingNotesWrapper");
+let tastingNotesInput = document.getElementById("tastingNotesInput");
 let grindSize = document.getElementById("grindSize");
 let observations = document.getElementById("observations");
 let doseIn = document.getElementById("doseIn");
@@ -25,6 +28,26 @@ let saveButton = document.getElementById("saveButton");
 // Array to store all logged brews
 let brewLog = [];
 let errLog = [];
+let tastingTags = [];
+
+// tasting notes
+const commonEspressoTastingNotes = [
+  "chocolate",
+  "caramel",
+  "hazelnut",
+  "almond",
+  "brown sugar",
+  "vanilla",
+  "citrus",
+  "lemon",
+  "berry",
+  "cherry",
+  "stone fruit",
+  "floral",
+  "honey",
+  "toffee",
+  "spice",
+];
 
 // Local Storage variables
 let storedBrewLog;
@@ -216,6 +239,28 @@ const renderCoffeeCard = () => {
   }
 };
 
+// tasting Notes Input
+tastingNotesInput.addEventListener("keydown", (event) => {
+  errorLog.innerHTML = "";
+  tastingNotesInput.classList.remove("input-error");
+  errLog = [];
+  let tagToAdd = tastingNotesInput.value.trim();
+  if (event.key === "Enter") {
+    event.preventDefault();
+    if (!tagToAdd || tastingTags.includes(tagToAdd)) {
+      console.log("yes!");
+      tastingTags.push(tagToAdd);
+      const tags = document.createElement("span");
+      tags.classList.add("remove-tag");
+      tastingNotesWrapper.appendChild(tags);
+      tags.textContent = tagsToAdd;
+      tastingNotesInput.value = "";
+    } else {
+      errLog.push("You have already added this tag! Please enter a new tag.");
+      tastingNotesWrapper.classList.add("input-error");
+    }
+  }
+});
 
 
 
@@ -230,7 +275,7 @@ const saveCoffeeLog = (event) => {
     doseIn,
     doseOut,
     observations,
-    tasteNotes,
+    tastingNotesInput,
     brand,
     roastLevel,
     machine,
@@ -298,7 +343,7 @@ const saveCoffeeLog = (event) => {
     grindSize: parseFloat(grindSize.value.trim()),
     doseIn: parseFloat(doseIn.value.trim()),
     doseOut: parseFloat(doseOut.value.trim()),
-    tasteNotes: tasteNotes.value.trim(),
+    tasteNotes: tastingTags,
     observations: observations.value.trim(),
     extractionTime: dateToStr(timerState.elapsedTime),
     brand: brand.value.trim(),
@@ -370,5 +415,3 @@ loadSavedBrewsFromLocalStorage();
 startStopTimer.addEventListener("click", startStop);
 clearTimer.addEventListener("click", clearTime);
 saveButton.addEventListener("click", saveCoffeeLog);
-
-
