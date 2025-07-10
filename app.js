@@ -5,6 +5,7 @@ const body = document.body;
 // Get DOM elements for timer display and input fields
 let extractionTimeDisplay = document.getElementById("extractionTime");
 
+let tastingSuggestions = document.getElementById("tastingSuggestions");
 let tagList = document.getElementById("tagList");
 let tastingNotesWrapper = document.getElementById("tastingNotesWrapper");
 let tastingNotesInput = document.getElementById("tastingNotesInput");
@@ -247,13 +248,29 @@ tastingNotesInput.addEventListener("keydown", (event) => {
   let tagToAdd = tastingNotesInput.value.trim();
   if (event.key === "Enter") {
     event.preventDefault();
-    if (!tagToAdd || tastingTags.includes(tagToAdd)) {
-      console.log("yes!");
+    if (tagToAdd && !tastingTags.includes(tagToAdd)) {
       tastingTags.push(tagToAdd);
-      const tags = document.createElement("span");
-      tags.classList.add("remove-tag");
-      tastingNotesWrapper.appendChild(tags);
-      tags.textContent = tagsToAdd;
+
+      const tag = document.createElement("span");
+      tag.classList.add("remove-tag");
+
+      const text = document.createTextNode(tagToAdd + " ");
+      const button = document.createElement("button");
+      button.classList.add("remove-btn");
+      button.textContent = "x";
+
+      button.addEventListener("click", function () {
+        tag.remove();
+        const index = tastingTags.indexOf(tagToAdd);
+        if (index > -1) {
+          tastingTags.splice(index, 1);
+        }
+      });
+
+      tag.appendChild(text);
+      tag.appendChild(button);
+      tastingNotesWrapper.appendChild(tag);
+
       tastingNotesInput.value = "";
     } else {
       errLog.push("You have already added this tag! Please enter a new tag.");
@@ -262,7 +279,15 @@ tastingNotesInput.addEventListener("keydown", (event) => {
   }
 });
 
-
+const dropDownTags = () => {
+  commonEspressoTastingNotes.forEach((note) => {
+    const li = document.createElement("li");
+    li.classList.add("autocomplete-list");
+    li.id = "tastingSuggestions";
+    li.textContent = note;
+    tastingSuggestions.appendChild(li);
+  });
+};
 
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {

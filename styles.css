@@ -220,6 +220,71 @@ body.dark-mode #observations {
   gap: 1.2rem;
 }
 
+/* Tag pill */
+.remove-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent-color);
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  margin: 0.3rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1;
+  gap: 0.4rem;
+}
+
+.remove-tag .remove-btn {
+  background: none;
+  border: none;
+  color: #ffe5d0;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-1px);
+}
+
+.remove-tag .remove-btn:hover {
+  color: #ffffff;
+}
+
+
+/* Tag wrapper */
+.tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  margin-top: 0.5rem;
+}
+
+body.dark-mode .remove-tag {
+  color: #f4f4f4;
+}
+
+body.dark-mode .remove-tag:hover {
+  background-color: var(--button-hover);
+  color: #f4f4f4;
+}
+
+body.dark-mode .remove-tag .remove-btn {
+  color: #ddd;
+}
+
+body.dark-mode .remove-tag .remove-btn:hover {
+  color: #fff;
+}
+
+
+
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {
   --bg-color: #1e1e1e;
