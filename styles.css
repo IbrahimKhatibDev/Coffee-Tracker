@@ -255,14 +255,19 @@ body.dark-mode #observations {
   color: #ffffff;
 }
 
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+}
 
 /* Tag wrapper */
 .tags-wrapper {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.3rem;
-  border-radius: 8px;
-  background-color: var(--input-bg);
   margin-top: 0.5rem;
 }
 
@@ -283,7 +288,49 @@ body.dark-mode .remove-tag .remove-btn:hover {
   color: #fff;
 }
 
+/* Suggestions list wrapper */
+#tastingSuggestions {
+  display: none;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  margin-top: 0.2rem;
+  max-height: 200px;
+  padding: 0.2rem 0;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
+/* Each suggestion item */
+.autocomplete-list {
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  color: var(--text-color);
+  transition: background-color 0.2s ease;
+}
+
+.autocomplete-list:hover {
+  background-color: #eee;
+}
+
+body.dark-mode #tastingSuggestions {
+  background-color: #2a2a2a;
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .autocomplete-list {
+  color: #f4f4f4;
+}
+
+body.dark-mode .autocomplete-list:hover {
+  background-color: #444;
+}
 
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {

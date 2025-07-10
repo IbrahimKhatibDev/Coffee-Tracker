@@ -240,6 +240,28 @@ const renderCoffeeCard = () => {
   }
 };
 
+const createRemoveTag = (tag) => {
+  const span = document.createElement("span");
+  span.classList.add("remove-tag");
+
+  const text = document.createTextNode(tag + " ");
+  const button = document.createElement("button");
+  button.classList.add("remove-btn");
+  button.innerHTML = "&times;";
+
+  button.addEventListener("click", function () {
+    span.remove();
+    const index = tastingTags.indexOf(tag);
+    if (index > -1) {
+      tastingTags.splice(index, 1);
+    }
+  });
+
+  span.appendChild(text);
+  span.appendChild(button);
+  tagList.appendChild(span);
+};
+
 // tasting Notes Input
 tastingNotesInput.addEventListener("keydown", (event) => {
   errorLog.innerHTML = "";
@@ -251,26 +273,9 @@ tastingNotesInput.addEventListener("keydown", (event) => {
     if (tagToAdd && !tastingTags.includes(tagToAdd)) {
       tastingTags.push(tagToAdd);
 
-      const tag = document.createElement("span");
-      tag.classList.add("remove-tag");
+      createRemoveTag(tagToAdd);
 
-      const text = document.createTextNode(tagToAdd + " ");
-      const button = document.createElement("button");
-      button.classList.add("remove-btn");
-      button.innerHTML = "&times;";
-
-      button.addEventListener("click", function () {
-        tag.remove();
-        const index = tastingTags.indexOf(tagToAdd);
-        if (index > -1) {
-          tastingTags.splice(index, 1);
-        }
-      });
-
-      tag.appendChild(text);
-      tag.appendChild(button);
-      tastingNotesWrapper.appendChild(tag);
-
+      tastingSuggestions.style.display = "none";
       tastingNotesInput.value = "";
     } else {
       errLog.push("You have already added this tag! Please enter a new tag.");
@@ -279,15 +284,50 @@ tastingNotesInput.addEventListener("keydown", (event) => {
   }
 });
 
-const dropDownTags = () => {
-  commonEspressoTastingNotes.forEach((note) => {
-    const li = document.createElement("li");
-    li.classList.add("autocomplete-list");
-    li.id = "tastingSuggestions";
-    li.textContent = note;
-    tastingSuggestions.appendChild(li);
+tastingNotesInput.addEventListener("input", function () {
+  tastingSuggestions.innerHTML = "";
+  const userInput = tastingNotesInput.value.trim().toLowerCase();
+
+  if (!userInput) {
+    tastingSuggestions.style.display = "none";
+    return;
+  }
+
+  const matches = commonEspressoTastingNotes.filter((note) => {
+    return (
+      note.toLowerCase().includes(userInput) && !tastingTags.includes(note)
+    );
   });
-};
+
+  if (matches.length > 0) {
+    tastingSuggestions.style.display = "block";
+    matches.forEach((note) => {
+      const li = document.createElement("li");
+      li.classList.add("autocomplete-list");
+      li.textContent = note;
+      tastingSuggestions.appendChild(li);
+
+      li.addEventListener("click", function () {
+        let tagToAdd = li.textContent;
+        if (!tastingTags.includes(tagToAdd)) {
+          tastingTags.push(tagToAdd);
+          createRemoveTag(tagToAdd);
+          tastingNotesInput.value = "";
+          tastingSuggestions.innerHTML = "";
+          tastingSuggestions.style.display = "none";
+        } else {
+          tastingSuggestions.style.display = "none";
+        }
+      });
+    });
+  }
+});
+
+tastingNotesInput.addEventListener("blur", function () {
+  setTimeout(() => {
+    tastingSuggestions.style.display = "none";
+  }, 150);
+});
 
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
