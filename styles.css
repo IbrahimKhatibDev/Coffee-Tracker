@@ -227,7 +227,7 @@ body.dark-mode #observations {
   justify-content: center;
   background-color: var(--accent-color);
   color: #fff;
-  padding: 0.35rem 0.7rem;
+  padding: 0.25rem 0.7rem 0.35rem 0.7rem;
   margin: 0.3rem;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -241,14 +241,14 @@ body.dark-mode #observations {
   border: none;
   color: #ffe5d0;
   font-weight: bold;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  line-height: 1;
-  padding: 0;
+  padding: 0.1rem 0rem 0rem 0rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translateY(-1px);
+  line-height: 1;
+  transition: color 0.2s ease;
 }
 
 .remove-tag .remove-btn:hover {

@@ -245,7 +245,7 @@ tastingNotesInput.addEventListener("keydown", (event) => {
   errorLog.innerHTML = "";
   tastingNotesInput.classList.remove("input-error");
   errLog = [];
-  let tagToAdd = tastingNotesInput.value.trim();
+  let tagToAdd = tastingNotesInput.value.trim().toLowerCase();
   if (event.key === "Enter") {
     event.preventDefault();
     if (tagToAdd && !tastingTags.includes(tagToAdd)) {
@@ -257,7 +257,7 @@ tastingNotesInput.addEventListener("keydown", (event) => {
       const text = document.createTextNode(tagToAdd + " ");
       const button = document.createElement("button");
       button.classList.add("remove-btn");
-      button.textContent = "x";
+      button.innerHTML = "&times;";
 
       button.addEventListener("click", function () {
         tag.remove();
