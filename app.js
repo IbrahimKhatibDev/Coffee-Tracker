@@ -234,7 +234,8 @@ const renderCoffeeCard = () => {
       <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
       <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
       <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
-      <p><strong>Taste Notes:</strong> ${brew.tasteNotes || "N/A"}</p>
+      <p><strong>Taste Notes:</strong> ${brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"}</p>
+      <p><strong>Observations:</strong> ${brew.observations || "N/A"}</p>
     `;
     brewLogContainer.appendChild(card);
   }
