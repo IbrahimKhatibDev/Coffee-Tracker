@@ -436,6 +436,8 @@ const saveCoffeeLog = (event) => {
   // render card and clear form, display save message
   renderCoffeeCard();
   clearTime(event);
+  tastingTags = [];
+  tagList.innerHTML = ""
   resetForm();
 
   if (storedPreferences) {
