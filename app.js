@@ -190,7 +190,7 @@ const clearTime = (event) => {
     startStopTimer.classList.add("start-button");
     timerState.startTime = 0;
     timerState.elapsedTime = 0;
-    console.log(Date.now())
+    console.log(Date.now());
   }
 };
 
@@ -218,27 +218,34 @@ function dateToStr(date) {
   return `${formattedMinutes}:${formattedSeconds}.${formattedMillisecondToHundredths}`;
 }
 
+const createCoffeCardElements = () => {
+  const cardActions = document.createElement("div");
+  cardActions.classList.add("card-actions");
+
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("card-btn", "delete-btn");
+  deleteButton.textContent = "X";
+
+  const editButton = document.createElement("button");
+  editButton.classList.add("card-btn", "edit-btn");
+  editButton.textContent = "Edit";
+
+  cardActions.appendChild(editButton);
+  cardActions.appendChild(deleteButton);
+  return cardActions;
+};
+
 // Render each saved brew as a card in the UI
 const renderCoffeeCard = () => {
   brewLogContainer.innerHTML = "";
   for (let i = 0; i < brewLog.length; ++i) {
     const brew = brewLog[i];
+    let isEditing = false;
+
     const card = document.createElement("div");
     card.classList.add("brew-card");
 
-    const cardAction = document.createElement("div");
-    cardAction.classList.add("card-actions");
-
-    const deleteButton = document.createElement("button");
-    deleteButton.classList.add("card-btn", "delete-btn");
-    deleteButton.textContent = "X";
-
-    const editButton = document.createElement("button");
-    editButton.classList.add("card-btn", "edit-btn");
-    editButton.textContent = "Edit";
-
-    cardAction.appendChild(editButton);
-    cardAction.appendChild(deleteButton);
+    const cardActions = createCoffeCardElements();
 
     card.innerHTML = `
       <h3>${brew.brand}</h3>
@@ -254,8 +261,24 @@ const renderCoffeeCard = () => {
       }</p>
       <p><strong>Observations:</strong> ${brew.observations || "N/A"}</p>
     `;
-    card.appendChild(cardAction);
+    card.appendChild(cardActions);
     brewLogContainer.appendChild(card);
+
+    let editButton = cardActions.querySelector(".edit-btn");
+    let deleteButton = cardActions.querySelector(".delete-btn");
+
+    editButton.addEventListener("click", () => {
+      if (!isEditing) {
+        console.log(!isEditing);
+        const saveCardButton = document.createElement("button");
+        saveCardButton.classList.add("card-btn", "save-btn");
+        saveCardButton.textContent = "Save";
+        cardActions.appendChild(saveCardButton);
+        isEditing = true;
+      }
+    });
+
+    deleteButton.addEventListener("click", () => {});
   }
 };
 
