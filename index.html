@@ -94,6 +94,21 @@
         </section>
         <section class="cards-section">
             <h2>Saved Brews:</h2>
+            <div class="filterBrews">
+                <label for="filterBrews">Filter:</label>
+                <select id="filterBrewsByRoast">
+                    <option value="">Roast</option>
+                    <option value="all">all</option>
+                    <option value="Light">Light</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Dark">Dark</option>
+                </select>
+                <select id="filterBrewsByTime">
+                    <option value="">Time</option>
+                    <option value="Newest">Newest First</option>
+                    <option value="Oldest">Oldest First</option>
+                </select>
+            </div>
             <div id="brewLogContainer" class="cards"></div>
         </section>
     </main>
