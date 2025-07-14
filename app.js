@@ -26,10 +26,12 @@ let startStopTimer = document.getElementById("startStop");
 let clearTimer = document.getElementById("clear");
 let saveButton = document.getElementById("saveButton");
 
-// Array to store all logged brews
+// globals
 let brewLog = [];
 let errLog = [];
 let tastingTags = [];
+let isEditing = false;
+let editingCard = null;
 
 // tasting notes
 const commonEspressoTastingNotes = [
@@ -238,9 +240,9 @@ const createCoffeCardElements = () => {
 // Render each saved brew as a card in the UI
 const renderCoffeeCard = () => {
   brewLogContainer.innerHTML = "";
+
   for (let i = 0; i < brewLog.length; ++i) {
     const brew = brewLog[i];
-    let isEditing = false;
 
     const card = document.createElement("div");
     card.classList.add("brew-card");
@@ -256,31 +258,58 @@ const renderCoffeeCard = () => {
       <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
       <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
       <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
-      <p><strong>Taste Notes:</strong> ${
-        brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"
-      }</p>
+      <p><strong>Taste Notes:</strong> ${brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"}</p>
       <p><strong>Observations:</strong> ${brew.observations || "N/A"}</p>
     `;
+
     card.appendChild(cardActions);
     brewLogContainer.appendChild(card);
 
-    let editButton = cardActions.querySelector(".edit-btn");
-    let deleteButton = cardActions.querySelector(".delete-btn");
+    const editButton = cardActions.querySelector(".edit-btn");
+    const deleteButton = cardActions.querySelector(".delete-btn");
 
     editButton.addEventListener("click", () => {
       if (!isEditing) {
-        console.log(!isEditing);
+        // Start editing
         const saveCardButton = document.createElement("button");
         saveCardButton.classList.add("card-btn", "save-btn");
         saveCardButton.textContent = "Save";
+
         cardActions.appendChild(saveCardButton);
+        editButton.textContent = "Cancel";
+        editButton.classList.remove("edit-btn");
+        editButton.classList.add("cancel-btn");
+
         isEditing = true;
+        editingCard = card;
+
+        // Cancel logic
+        editButton.addEventListener("click", () => {
+          saveCardButton.remove();
+          editButton.textContent = "Edit";
+          editButton.classList.add("edit-btn");
+          editButton.classList.remove("cancel-btn");
+
+          isEditing = false;
+          editingCard = null;
+        }, { once: true });
+
+      } else {
+        console.log("You're already editing a card.");
       }
     });
 
-    deleteButton.addEventListener("click", () => {});
+    deleteButton.addEventListener("click", () => {
+      // handle delete later
+    });
   }
 };
+
+const cardEdit = () => {};
+
+const cardSave = () => {};
+
+const cardDelete = () => {};
 
 const createRemoveTag = (tag) => {
   const span = document.createElement("span");
