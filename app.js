@@ -333,7 +333,6 @@ tastingNotesInput.addEventListener("blur", function () {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
-  errLog = [];
   errorLog.innerHTML = "";
 
   // Clear previous input error highlights
@@ -428,7 +427,7 @@ const saveCoffeeLog = (event) => {
   };
 
   // Save brew and update UI
-  brewLog.push(coffeeBrew);
+  brewLog.unshift(coffeeBrew);
 
   // save to local storage on save
   localStorage.setItem("brewLog", JSON.stringify(brewLog));
