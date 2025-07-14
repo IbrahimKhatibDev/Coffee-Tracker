@@ -333,6 +333,7 @@ tastingNotesInput.addEventListener("blur", function () {
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
+  errLog = [];
   errorLog.innerHTML = "";
 
   // Clear previous input error highlights
