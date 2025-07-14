@@ -293,9 +293,6 @@ const renderCoffeeCard = () => {
           isEditing = false;
           editingCard = null;
         }, { once: true });
-
-      } else {
-        console.log("You're already editing a card.");
       }
     });
 
