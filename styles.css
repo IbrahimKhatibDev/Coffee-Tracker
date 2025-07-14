@@ -187,7 +187,6 @@ body.dark-mode #observations {
 }
 
 .brew-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
@@ -218,6 +217,53 @@ body.dark-mode #observations {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+}
+
+/* Button container inside cards */
+.card-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+  z-index: 10;
+}
+
+/* Button base style */
+.card-btn {
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Edit button */
+.edit-btn {
+  background-color: #686868;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #3d6f3a;
+}
+
+/* Delete button */
+.delete-btn {
+  background-color: #b33e3e;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #912d2d;
+}
+
+/* Ensure the card is positioned relative so buttons can be absolutely placed */
+.brew-card {
+  position: relative;
 }
 
 /* Tag pill */
@@ -392,6 +438,15 @@ body.dark-mode .filter-group input[type="text"] {
   color: #f4f4f4;
 }
 
+.filter-group .tags-wrapper {
+  margin-top: 0;
+}
+
+.filter-group .autocomplete-list {
+  padding: 0;
+  margin: 0;
+}
+
 .filter-group button {
   padding: 0.7rem 1.2rem;
   font-size: 1rem;
@@ -468,6 +523,10 @@ body.dark-mode {
   .cards {
     gap: 1rem;
   }
+  .card-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
 
   .filterBrews {
     flex-direction: column;
@@ -485,6 +544,5 @@ body.dark-mode {
 
   .filter-group button {
     width: auto;
-    align-self: flex-start;
   }
 }

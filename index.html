@@ -117,8 +117,16 @@
                 </div>
 
                 <div class="filter-group">
-                    <label for="filterByNote">Search Tasting Notes:</label>
-                    <input type="text" id="filterByNote" placeholder="(e.g. fruity, chocolate, rich)" />
+                    <label for="filterTastingNotesInput">Filter by Tasting Notes:</label>
+                    <div id="filterTastingNotesWrapper" class="tags-wrapper">
+                        <input type="text" id="filterTastingNotesInput" placeholder="Type and press Enter..."
+                            autocomplete="off" />
+                        <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
+                        <div id="filterTagList" class="tag-list"></div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
                     <button type="button" id="applyFiltersButton">Apply Filters</button>
                 </div>
             </fieldset>

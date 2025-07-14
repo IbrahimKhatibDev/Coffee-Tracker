@@ -190,6 +190,7 @@ const clearTime = (event) => {
     startStopTimer.classList.add("start-button");
     timerState.startTime = 0;
     timerState.elapsedTime = 0;
+    console.log(Date.now())
   }
 };
 
@@ -225,6 +226,20 @@ const renderCoffeeCard = () => {
     const card = document.createElement("div");
     card.classList.add("brew-card");
 
+    const cardAction = document.createElement("div");
+    cardAction.classList.add("card-actions");
+
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("card-btn", "delete-btn");
+    deleteButton.textContent = "X";
+
+    const editButton = document.createElement("button");
+    editButton.classList.add("card-btn", "edit-btn");
+    editButton.textContent = "Edit";
+
+    cardAction.appendChild(editButton);
+    cardAction.appendChild(deleteButton);
+
     card.innerHTML = `
       <h3>${brew.brand}</h3>
       <p><strong>Roast Level:</strong> ${brew.roastLevel || "N/A"}</p>
@@ -234,9 +249,12 @@ const renderCoffeeCard = () => {
       <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
       <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
       <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
-      <p><strong>Taste Notes:</strong> ${brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"}</p>
+      <p><strong>Taste Notes:</strong> ${
+        brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"
+      }</p>
       <p><strong>Observations:</strong> ${brew.observations || "N/A"}</p>
     `;
+    card.appendChild(cardAction);
     brewLogContainer.appendChild(card);
   }
 };
@@ -438,7 +456,7 @@ const saveCoffeeLog = (event) => {
   renderCoffeeCard();
   clearTime(event);
   tastingTags = [];
-  tagList.innerHTML = ""
+  tagList.innerHTML = "";
   resetForm();
 
   if (storedPreferences) {
