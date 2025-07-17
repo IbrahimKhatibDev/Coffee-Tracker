@@ -273,7 +273,6 @@ const renderCoffeeCard = () => {
 
     editButton.addEventListener("click", () => {
       if (editButton.classList.contains("edit-btn")) {
-        // Start editing
         saveCardButton.classList.add("card-btn", "save-btn");
         saveCardButton.textContent = "Save";
 
@@ -294,8 +293,7 @@ const renderCoffeeCard = () => {
     });
 
     deleteButton.addEventListener("click", () => {
-      console.log(editingCard);
-      cardDelete(brew);
+      cardDelete(brew.id);
     });
   }
 };
@@ -304,8 +302,12 @@ const cardEdit = () => {};
 
 const cardSave = () => {};
 
-const cardDelete = (brew) => {
-  console.log(`${brew} This card has been deleted!`);
+const cardDelete = (id) => {
+  if (window.confirm("Are you sure you would like to delete this Log?")) {
+    brewLog = brewLog.filter((entry) => entry.id !== id);
+    localStorage.setItem("brewLog", JSON.stringify(brewLog));
+    renderCoffeeCard();
+  }
 };
 
 const createRemoveTag = (tag) => {
@@ -484,7 +486,7 @@ const saveCoffeeLog = (event) => {
     extractionTime: dateToStr(timerState.elapsedTime),
     doseOut: parseFloat(doseOut.value.trim()),
     tasteNotes: tastingTags,
-    observations: observations.value.trim()
+    observations: observations.value.trim(),
   };
 
   // last used fields for loading in
