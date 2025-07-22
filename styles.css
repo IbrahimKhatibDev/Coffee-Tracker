@@ -464,6 +464,46 @@ body.dark-mode .filter-group input[type="text"] {
   transform: scale(1.02);
 }
 
+/* -------------------- Inline Edit Form Fields -------------------- */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.edit-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.edit-row label {
+  flex: 0 0 120px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.edit-row input,
+.edit-row select,
+.edit-row textarea {
+  flex: 1;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-family: inherit;
+}
+
+.edit-row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+
+
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {
   --bg-color: #1e1e1e;
