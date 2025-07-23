@@ -272,28 +272,92 @@ const renderCoffeeCard = () => {
     const saveCardButton = document.createElement("button");
 
     editCancelButton.addEventListener("click", () => {
+      if (editingCard && editingCard !== card) return; // prevent multiple edits
+
       if (editCancelButton.classList.contains("edit-btn")) {
-        saveCardButton.classList.add("card-btn", "save-btn");
-        saveCardButton.textContent = "Save";
-
-        cardActions.appendChild(saveCardButton);
-        deleteButton.remove();
-        editCancelButton.classList.remove("edit-btn");
-
-        editCancelButton.textContent = "Cancel";
-        editCancelButton.classList.add("cancel-btn");
-
+        // Switch to edit mode
         editingCard = card;
-      } else {
-        saveCardButton.remove();
-        cardActions.appendChild(deleteButton)
-        editCancelButton.classList.remove("cancel-btn");
+        card.innerHTML = "";
 
-        editCancelButton.textContent = "Edit";
-        editCancelButton.classList.add("edit-btn");
-        
+        // Editable form fields
+        const editForm = document.createElement("div");
+        editForm.classList.add("edit-form");
 
-        editingCard = null;
+        editForm.innerHTML = `
+      <input type="text" value="${brew.brand}" class="edit-brand" />
+      <select class="edit-roastLevel">
+        <option value="Light" ${
+          brew.roastLevel === "Light" ? "selected" : ""
+        }>Light</option>
+        <option value="Medium" ${
+          brew.roastLevel === "Medium" ? "selected" : ""
+        }>Medium</option>
+        <option value="Dark" ${
+          brew.roastLevel === "Dark" ? "selected" : ""
+        }>Dark</option>
+      </select>
+      <input type="text" value="${brew.machine}" class="edit-machine" />
+      <input type="text" value="${brew.grinder}" class="edit-grinder" />
+      <input type="number" value="${brew.grindSize}" class="edit-grindSize" />
+      <input type="number" value="${brew.doseIn}" class="edit-doseIn" />
+      <input type="number" value="${brew.doseOut}" class="edit-doseOut" />
+      <input type="text" value="${
+        brew.extractionTime
+      }" class="edit-extractionTime" />
+      <input type="text" value="${
+        brew.tasteNotes?.join(", ") || ""
+      }" class="edit-tasteNotes" />
+      <textarea class="edit-observations">${brew.observations || ""}</textarea>
+    `;
+
+        card.appendChild(editForm);
+
+        // Add Save & Cancel buttons
+        const actions = createCoffeCardElements();
+        const saveButton = document.createElement("button");
+        saveButton.classList.add("card-btn", "save-btn");
+        saveButton.textContent = "Save";
+
+        const cancelButton = document.createElement("button");
+        cancelButton.classList.add("card-btn", "cancel-btn");
+        cancelButton.textContent = "Cancel";
+
+        actions.innerHTML = "";
+        actions.appendChild(saveButton);
+        actions.appendChild(cancelButton);
+        card.appendChild(actions);
+
+        saveButton.addEventListener("click", () => {
+          const updatedBrew = {
+            ...brew,
+            brand: card.querySelector(".edit-brand").value,
+            roastLevel: card.querySelector(".edit-roastLevel").value,
+            machine: card.querySelector(".edit-machine").value,
+            grinder: card.querySelector(".edit-grinder").value,
+            grindSize: parseFloat(card.querySelector(".edit-grindSize").value),
+            doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
+            doseOut: parseFloat(card.querySelector(".edit-doseOut").value),
+            extractionTime: card.querySelector(".edit-extractionTime").value,
+            tasteNotes: card
+              .querySelector(".edit-tasteNotes")
+              .value.split(",")
+              .map((note) => note.trim())
+              .filter(Boolean),
+            observations: card.querySelector(".edit-observations").value,
+          };
+
+          brewLog = brewLog.map((entry) =>
+            entry.id === brew.id ? updatedBrew : entry
+          );
+          localStorage.setItem("brewLog", JSON.stringify(brewLog));
+          editingCard = null;
+          renderCoffeeCard();
+        });
+
+        cancelButton.addEventListener("click", () => {
+          editingCard = null;
+          renderCoffeeCard();
+        });
       }
     });
 
@@ -302,10 +366,6 @@ const renderCoffeeCard = () => {
     });
   }
 };
-
-const cardEdit = () => {};
-
-const cardSave = () => {};
 
 const cardDelete = (id) => {
   if (window.confirm("Are you sure you would like to delete this Log?")) {
