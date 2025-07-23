@@ -284,31 +284,70 @@ const renderCoffeeCard = () => {
         editForm.classList.add("edit-form");
 
         editForm.innerHTML = `
-      <input type="text" value="${brew.brand}" class="edit-brand" />
-      <select class="edit-roastLevel">
-        <option value="Light" ${
-          brew.roastLevel === "Light" ? "selected" : ""
-        }>Light</option>
-        <option value="Medium" ${
-          brew.roastLevel === "Medium" ? "selected" : ""
-        }>Medium</option>
-        <option value="Dark" ${
-          brew.roastLevel === "Dark" ? "selected" : ""
-        }>Dark</option>
-      </select>
-      <input type="text" value="${brew.machine}" class="edit-machine" />
-      <input type="text" value="${brew.grinder}" class="edit-grinder" />
-      <input type="number" value="${brew.grindSize}" class="edit-grindSize" />
-      <input type="number" value="${brew.doseIn}" class="edit-doseIn" />
-      <input type="number" value="${brew.doseOut}" class="edit-doseOut" />
-      <input type="text" value="${
-        brew.extractionTime
-      }" class="edit-extractionTime" />
-      <input type="text" value="${
-        brew.tasteNotes?.join(", ") || ""
-      }" class="edit-tasteNotes" />
-      <textarea class="edit-observations">${brew.observations || ""}</textarea>
-    `;
+            <div class="edit-field">
+                <label>Brand:</label>
+                <input type="text" value="${brew.brand}" class="edit-brand" />
+            </div>
+
+            <div class="edit-field">
+                <label>Roast Level:</label>
+                <select class="edit-roastLevel">
+                <option value="Light" ${
+                    brew.roastLevel === "Light" ? "selected" : ""
+                }>Light</option>
+                <option value="Medium" ${
+                    brew.roastLevel === "Medium" ? "selected" : ""
+                }>Medium</option>
+                <option value="Dark" ${
+                    brew.roastLevel === "Dark" ? "selected" : ""
+                }>Dark</option>
+                </select>
+            </div>
+
+            <div class="edit-field">
+                <label>Machine:</label>
+                <input type="text" value="${brew.machine}" class="edit-machine" />
+            </div>
+
+            <div class="edit-field">
+                <label>Grinder:</label>
+                <input type="text" value="${brew.grinder}" class="edit-grinder" />
+            </div>
+
+            <div class="edit-field">
+                <label>Grind Size:</label>
+                <input type="number" value="${brew.grindSize}" class="edit-grindSize" />
+            </div>
+
+            <div class="edit-field">
+                <label>Coffee In (g):</label>
+                <input type="number" value="${brew.doseIn}" class="edit-doseIn" />
+            </div>
+
+            <div class="edit-field">
+                <label>Coffee Out (g):</label>
+                <input type="number" value="${brew.doseOut}" class="edit-doseOut" />
+            </div>
+
+            <div class="edit-field">
+                <label>Extraction Time:</label>
+                <input type="text" value="${
+                brew.extractionTime
+                }" class="edit-extractionTime" />
+            </div>
+
+            <div class="edit-field">
+                <label>Taste Notes:</label>
+                <input type="text" value="${
+                brew.tasteNotes?.join(", ") || ""
+                }" class="edit-tasteNotes" />
+            </div>
+
+            <div class="edit-field">
+                <label>Observations:</label>
+                <textarea class="edit-observations">${brew.observations || ""}</textarea>
+            </div>
+            `;
 
         card.appendChild(editForm);
 

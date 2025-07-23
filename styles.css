@@ -221,11 +221,14 @@ body.dark-mode #observations {
 
 /* Button container inside cards */
 .card-actions {
-  position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   display: flex;
   gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  padding-top: 0.3rem;
+  padding-right: 0.3rem;
   z-index: 10;
 }
 
@@ -468,26 +471,28 @@ body.dark-mode .filter-group input[type="text"] {
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-top: 0.5rem;
 }
 
-.edit-row {
+.edit-field {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.edit-row label {
-  flex: 0 0 120px;
+.edit-field label {
+  width: 120px;
   font-weight: 500;
   color: var(--text-color);
+  margin-right: 1rem;
 }
 
-.edit-row input,
-.edit-row select,
-.edit-row textarea {
+.edit-field input,
+.edit-field select {
   flex: 1;
+  min-width: 200px;
+  max-width: 100%;
   font-size: 0.95rem;
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
@@ -497,12 +502,19 @@ body.dark-mode .filter-group input[type="text"] {
   font-family: inherit;
 }
 
-.edit-row textarea {
+.edit-field textarea {
+  flex: 1;
+  min-width: 200px;
+  max-width: 100%;
+  font-size: 0.95rem;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-family: inherit;
   resize: vertical;
-  min-height: 60px;
 }
-
-
 
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {
