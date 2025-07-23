@@ -228,11 +228,11 @@ const createCoffeCardElements = () => {
   deleteButton.classList.add("card-btn", "delete-btn");
   deleteButton.textContent = "X";
 
-  const editButton = document.createElement("button");
-  editButton.classList.add("card-btn", "edit-btn");
-  editButton.textContent = "Edit";
+  const editCancelButton = document.createElement("button");
+  editCancelButton.classList.add("card-btn", "edit-btn");
+  editCancelButton.textContent = "Edit";
 
-  cardActions.appendChild(editButton);
+  cardActions.appendChild(editCancelButton);
   cardActions.appendChild(deleteButton);
   return cardActions;
 };
@@ -267,26 +267,31 @@ const renderCoffeeCard = () => {
     card.appendChild(cardActions);
     brewLogContainer.appendChild(card);
 
-    const editButton = cardActions.querySelector(".edit-btn");
+    const editCancelButton = cardActions.querySelector(".edit-btn");
     const deleteButton = cardActions.querySelector(".delete-btn");
     const saveCardButton = document.createElement("button");
 
-    editButton.addEventListener("click", () => {
-      if (editButton.classList.contains("edit-btn")) {
+    editCancelButton.addEventListener("click", () => {
+      if (editCancelButton.classList.contains("edit-btn")) {
         saveCardButton.classList.add("card-btn", "save-btn");
         saveCardButton.textContent = "Save";
 
         cardActions.appendChild(saveCardButton);
-        editButton.textContent = "Cancel";
-        editButton.classList.remove("edit-btn");
-        editButton.classList.add("cancel-btn");
+        deleteButton.remove();
+        editCancelButton.classList.remove("edit-btn");
+
+        editCancelButton.textContent = "Cancel";
+        editCancelButton.classList.add("cancel-btn");
 
         editingCard = card;
       } else {
         saveCardButton.remove();
-        editButton.textContent = "Edit";
-        editButton.classList.add("edit-btn");
-        editButton.classList.remove("cancel-btn");
+        cardActions.appendChild(deleteButton)
+        editCancelButton.classList.remove("cancel-btn");
+
+        editCancelButton.textContent = "Edit";
+        editCancelButton.classList.add("edit-btn");
+        
 
         editingCard = null;
       }
