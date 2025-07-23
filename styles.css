@@ -612,6 +612,49 @@ body.dark-mode .filter-group input[type="text"] {
   display: none;
 }
 
+/* Ensure filter content is spaced nicely */
+#filterContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.filterBrews {
+  padding: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+
+#filterContent.hidden {
+  display: none;
+}
+
+.toggle-filter-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.toggle-filter-btn span {
+  font-size: 1.2rem;
+  display: inline-block;
+  width: 1rem;
+  text-align: center;
+}
+
 
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {

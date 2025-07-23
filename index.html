@@ -95,45 +95,51 @@
         <section class="cards-section">
             <h2>Saved Brews:</h2>
             <fieldset class="filterBrews">
-                <legend>Filter Brew Logs</legend>
+                <legend>
+                    <button id="toggleFilter" class="toggle-filter-btn" aria-expanded="true">
+                        Filter Brew Logs <span id="toggleIcon">−</span>
+                    </button>
+                </legend>
 
-                <div class="filter-group">
-                    <label for="filterBrewsByRoast">Roast Level:</label>
-                    <select id="filterBrewsByRoast">
-                        <option value="">All Roasts</option>
-                        <option value="Light">Light</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Dark">Dark</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filterBrewsByTime">Sort by Time:</label>
-                    <select id="filterBrewsByTime">
-                        <option value="">--</option>
-                        <option value="Newest">Newest First</option>
-                        <option value="Oldest">Oldest First</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filterTastingNotesInput">Filter by Tasting Notes:</label>
-                    <div id="filterTastingNotesWrapper" class="tags-wrapper">
-                        <input type="text" id="filterTastingNotesInput" placeholder="Type and press Enter..."
-                            autocomplete="off" />
-                        <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
-                        <div id="filterTagList" class="tag-list"></div>
+                <div id="filterContent">
+                    <div class="filter-group">
+                        <label for="filterBrewsByRoast">Roast Level:</label>
+                        <select id="filterBrewsByRoast">
+                            <option value="">All Roasts</option>
+                            <option value="Light">Light</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Dark">Dark</option>
+                        </select>
                     </div>
-                </div>
 
-                <div class="filter-group">
-                    <button type="button" id="applyFiltersButton">Apply Filters</button>
+                    <div class="filter-group">
+                        <label for="filterBrewsByTime">Sort by Time:</label>
+                        <select id="filterBrewsByTime">
+                            <option value="">--</option>
+                            <option value="Newest">Newest First</option>
+                            <option value="Oldest">Oldest First</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterTastingNotesInput">Filter by Tasting Notes:</label>
+                        <div id="filterTastingNotesWrapper" class="tags-wrapper">
+                            <input type="text" id="filterTastingNotesInput" placeholder="Type and press Enter..."
+                                autocomplete="off" />
+                            <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
+                            <div id="filterTagList" class="tag-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="button" id="applyFiltersButton">Apply Filters</button>
+                    </div>
                 </div>
             </fieldset>
             <div id="brewLogContainer" class="cards"></div>
         </section>
     </main>
-        <div id="confirmModal" class="confirm-modal hidden">
+    <div id="confirmModal" class="confirm-modal hidden">
         <div class="confirm-box">
             <p id="confirmMessage">Are you sure?</p>
             <div class="confirm-buttons">

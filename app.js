@@ -26,6 +26,17 @@ let startStopTimer = document.getElementById("startStop");
 let clearTimer = document.getElementById("clear");
 let saveButton = document.getElementById("saveButton");
 
+// Toggle Button
+const toggleBtn = document.getElementById("toggleFilter");
+const toggleIcon = document.getElementById("toggleIcon");
+const filterContent = document.getElementById("filterContent");
+
+toggleBtn.addEventListener("click", () => {
+  const isHidden = filterContent.classList.toggle("hidden");
+  toggleIcon.textContent = isHidden ? "+" : "−";
+  toggleBtn.setAttribute("aria-expanded", !isHidden);
+});
+
 // globals
 let brewLog = [];
 let errLog = [];
