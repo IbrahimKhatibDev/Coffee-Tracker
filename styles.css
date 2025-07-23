@@ -170,6 +170,12 @@ body.dark-mode #observations {
   font-weight: bold;
 }
 
+.success-message {
+  color: green;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
 .input-error {
   border-color: var(--highlight-error-border);
   background-color: var(--highlight-error);
@@ -537,6 +543,75 @@ body.dark-mode .filter-group input[type="text"] {
   font-family: inherit;
   resize: vertical;
 }
+
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.confirm-box {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-box p {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.confirm-btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.confirm-yes {
+  background-color: hsl(106, 34%, 33%);
+  color: white;
+}
+
+.confirm-yes:hover {
+  background-color: hsl(106, 34%, 28%);
+}
+
+.confirm-no {
+  background-color: #686868;
+  color: white;
+}
+
+.confirm-no:hover {
+  background-color: #505050;
+}
+
+.hidden {
+  display: none;
+}
+
 
 /* -------------------- DARK MODE -------------------- */
 body.dark-mode {

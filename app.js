@@ -81,6 +81,32 @@ darkToggle.addEventListener("click", () => {
   darkToggle.textContent = theme === "dark" ? "☀️" : "🌙";
 });
 
+function showConfirm(message, onConfirm) {
+  const modal = document.getElementById("confirmModal");
+  const messageEl = document.getElementById("confirmMessage");
+  const yesBtn = document.getElementById("confirmYes");
+  const noBtn = document.getElementById("confirmNo");
+
+  messageEl.textContent = message;
+  modal.classList.remove("hidden");
+
+  // Clean up previous handlers
+  const cloneYes = yesBtn.cloneNode(true);
+  const cloneNo = noBtn.cloneNode(true);
+  yesBtn.replaceWith(cloneYes);
+  noBtn.replaceWith(cloneNo);
+
+  cloneYes.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    onConfirm(true);
+  });
+
+  cloneNo.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    onConfirm(false);
+  });
+}
+
 // Start the extraction timer
 const start = (event) => {
   event.preventDefault();
@@ -379,45 +405,51 @@ const renderCoffeeCard = () => {
         card.appendChild(actions);
 
         saveButton.addEventListener("click", () => {
-          if (
-            window.confirm(
-              "Are you sure you want to save the changes you've made?"
-            )
-          ) {
-            const updatedBrew = {
-              ...brew,
-              brand: card.querySelector(".edit-brand").value,
-              roastLevel: card.querySelector(".edit-roastLevel").value,
-              machine: card.querySelector(".edit-machine").value,
-              grinder: card.querySelector(".edit-grinder").value,
-              grindSize: parseFloat(
-                card.querySelector(".edit-grindSize").value
-              ),
-              doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
-              doseOut: parseFloat(card.querySelector(".edit-doseOut").value),
-              extractionTime: card.querySelector(".edit-extractionTime").value,
-              tasteNotes: card
-                .querySelector(".edit-tasteNotes")
-                .value.split(",")
-                .map((note) => note.trim())
-                .filter(Boolean),
-              observations: card.querySelector(".edit-observations").value,
-            };
+          showConfirm(
+            "Are you sure you want to save the changes you've made?",
+            (confirmed) => {
+              if (confirmed) {
+                const updatedBrew = {
+                  ...brew,
+                  brand: card.querySelector(".edit-brand").value,
+                  roastLevel: card.querySelector(".edit-roastLevel").value,
+                  machine: card.querySelector(".edit-machine").value,
+                  grinder: card.querySelector(".edit-grinder").value,
+                  grindSize: parseFloat(
+                    card.querySelector(".edit-grindSize").value
+                  ),
+                  doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
+                  doseOut: parseFloat(
+                    card.querySelector(".edit-doseOut").value
+                  ),
+                  extractionTime: card.querySelector(".edit-extractionTime")
+                    .value,
+                  tasteNotes: card
+                    .querySelector(".edit-tasteNotes")
+                    .value.split(",")
+                    .map((note) => note.trim())
+                    .filter(Boolean),
+                  observations: card.querySelector(".edit-observations").value,
+                };
 
-            brewLog = brewLog.map((entry) =>
-              entry.id === brew.id ? updatedBrew : entry
-            );
-            localStorage.setItem("brewLog", JSON.stringify(brewLog));
-            editingCard = null;
-            renderCoffeeCard();
-          }
+                brewLog = brewLog.map((entry) =>
+                  entry.id === brew.id ? updatedBrew : entry
+                );
+                localStorage.setItem("brewLog", JSON.stringify(brewLog));
+                editingCard = null;
+                renderCoffeeCard();
+              }
+            }
+          );
         });
 
         cancelButton.addEventListener("click", () => {
-          if (window.confirm("Are you sure you want to cancel?")) {
-            editingCard = null;
-            renderCoffeeCard();
-          }
+          showConfirm("Are you sure you want to cancel?", (confirmed) => {
+            if (confirmed) {
+              editingCard = null;
+              renderCoffeeCard();
+            }
+          });
         });
       }
     });
@@ -429,11 +461,16 @@ const renderCoffeeCard = () => {
 };
 
 const cardDelete = (id) => {
-  if (window.confirm("Are you sure you would like to delete this Log?")) {
-    brewLog = brewLog.filter((entry) => entry.id !== id);
-    localStorage.setItem("brewLog", JSON.stringify(brewLog));
-    renderCoffeeCard();
-  }
+  showConfirm(
+    "Are you sure you would like to delete this Log?",
+    (confirmed) => {
+      if (confirmed) {
+        brewLog = brewLog.filter((entry) => entry.id !== id);
+        localStorage.setItem("brewLog", JSON.stringify(brewLog));
+        renderCoffeeCard();
+      }
+    }
+  );
 };
 
 const createRemoveTag = (tag) => {
@@ -647,7 +684,7 @@ const saveCoffeeLog = (event) => {
     console.log("No saved preferences found in localStorage.");
   }
 
-  errorLog.innerHTML = "<p style='color: green;'>Coffee log saved!</p>";
+  errorLog.innerHTML = `<p class="success-message">Coffee log saved!</p>`;
 };
 
 // load from local storage
