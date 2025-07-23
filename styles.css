@@ -234,9 +234,11 @@ body.dark-mode #observations {
 
 /* Button base style */
 .card-btn {
+  min-width: 80px;
+  text-align: center;
   border: none;
   cursor: pointer;
-  padding: 0.3rem 0.5rem;
+  padding: 0.6rem 0.8rem;
   font-size: 0.9rem;
   font-weight: bold;
   border-radius: 6px;
@@ -262,6 +264,26 @@ body.dark-mode #observations {
 
 .delete-btn:hover {
   background-color: #912d2d;
+}
+
+/* Save button (green) */
+.save-btn {
+  background-color: #3a9c5d;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #2e7d48;
+}
+
+/* Cancel button (grey) */
+.cancel-btn {
+  background-color: #888;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #666;
 }
 
 /* Ensure the card is positioned relative so buttons can be absolutely placed */
@@ -576,7 +598,6 @@ body.dark-mode {
     gap: 1rem;
   }
   .card-btn {
-    padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
   }
 

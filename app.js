@@ -293,59 +293,71 @@ const renderCoffeeCard = () => {
                 <label>Roast Level:</label>
                 <select class="edit-roastLevel">
                 <option value="Light" ${
-                    brew.roastLevel === "Light" ? "selected" : ""
+                  brew.roastLevel === "Light" ? "selected" : ""
                 }>Light</option>
                 <option value="Medium" ${
-                    brew.roastLevel === "Medium" ? "selected" : ""
+                  brew.roastLevel === "Medium" ? "selected" : ""
                 }>Medium</option>
                 <option value="Dark" ${
-                    brew.roastLevel === "Dark" ? "selected" : ""
+                  brew.roastLevel === "Dark" ? "selected" : ""
                 }>Dark</option>
                 </select>
             </div>
 
             <div class="edit-field">
                 <label>Machine:</label>
-                <input type="text" value="${brew.machine}" class="edit-machine" />
+                <input type="text" value="${
+                  brew.machine
+                }" class="edit-machine" />
             </div>
 
             <div class="edit-field">
                 <label>Grinder:</label>
-                <input type="text" value="${brew.grinder}" class="edit-grinder" />
+                <input type="text" value="${
+                  brew.grinder
+                }" class="edit-grinder" />
             </div>
 
             <div class="edit-field">
                 <label>Grind Size:</label>
-                <input type="number" value="${brew.grindSize}" class="edit-grindSize" />
+                <input type="number" value="${
+                  brew.grindSize
+                }" class="edit-grindSize" />
             </div>
 
             <div class="edit-field">
                 <label>Coffee In (g):</label>
-                <input type="number" value="${brew.doseIn}" class="edit-doseIn" />
+                <input type="number" value="${
+                  brew.doseIn
+                }" class="edit-doseIn" />
             </div>
 
             <div class="edit-field">
                 <label>Coffee Out (g):</label>
-                <input type="number" value="${brew.doseOut}" class="edit-doseOut" />
+                <input type="number" value="${
+                  brew.doseOut
+                }" class="edit-doseOut" />
             </div>
 
             <div class="edit-field">
                 <label>Extraction Time:</label>
                 <input type="text" value="${
-                brew.extractionTime
+                  brew.extractionTime
                 }" class="edit-extractionTime" />
             </div>
 
             <div class="edit-field">
                 <label>Taste Notes:</label>
                 <input type="text" value="${
-                brew.tasteNotes?.join(", ") || ""
+                  brew.tasteNotes?.join(", ") || ""
                 }" class="edit-tasteNotes" />
             </div>
 
             <div class="edit-field">
                 <label>Observations:</label>
-                <textarea class="edit-observations">${brew.observations || ""}</textarea>
+                <textarea class="edit-observations">${
+                  brew.observations || ""
+                }</textarea>
             </div>
             `;
 
@@ -367,35 +379,45 @@ const renderCoffeeCard = () => {
         card.appendChild(actions);
 
         saveButton.addEventListener("click", () => {
-          const updatedBrew = {
-            ...brew,
-            brand: card.querySelector(".edit-brand").value,
-            roastLevel: card.querySelector(".edit-roastLevel").value,
-            machine: card.querySelector(".edit-machine").value,
-            grinder: card.querySelector(".edit-grinder").value,
-            grindSize: parseFloat(card.querySelector(".edit-grindSize").value),
-            doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
-            doseOut: parseFloat(card.querySelector(".edit-doseOut").value),
-            extractionTime: card.querySelector(".edit-extractionTime").value,
-            tasteNotes: card
-              .querySelector(".edit-tasteNotes")
-              .value.split(",")
-              .map((note) => note.trim())
-              .filter(Boolean),
-            observations: card.querySelector(".edit-observations").value,
-          };
+          if (
+            window.confirm(
+              "Are you sure you want to save the changes you've made?"
+            )
+          ) {
+            const updatedBrew = {
+              ...brew,
+              brand: card.querySelector(".edit-brand").value,
+              roastLevel: card.querySelector(".edit-roastLevel").value,
+              machine: card.querySelector(".edit-machine").value,
+              grinder: card.querySelector(".edit-grinder").value,
+              grindSize: parseFloat(
+                card.querySelector(".edit-grindSize").value
+              ),
+              doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
+              doseOut: parseFloat(card.querySelector(".edit-doseOut").value),
+              extractionTime: card.querySelector(".edit-extractionTime").value,
+              tasteNotes: card
+                .querySelector(".edit-tasteNotes")
+                .value.split(",")
+                .map((note) => note.trim())
+                .filter(Boolean),
+              observations: card.querySelector(".edit-observations").value,
+            };
 
-          brewLog = brewLog.map((entry) =>
-            entry.id === brew.id ? updatedBrew : entry
-          );
-          localStorage.setItem("brewLog", JSON.stringify(brewLog));
-          editingCard = null;
-          renderCoffeeCard();
+            brewLog = brewLog.map((entry) =>
+              entry.id === brew.id ? updatedBrew : entry
+            );
+            localStorage.setItem("brewLog", JSON.stringify(brewLog));
+            editingCard = null;
+            renderCoffeeCard();
+          }
         });
 
         cancelButton.addEventListener("click", () => {
-          editingCard = null;
-          renderCoffeeCard();
+          if (window.confirm("Are you sure you want to cancel?")) {
+            editingCard = null;
+            renderCoffeeCard();
+          }
         });
       }
     });
