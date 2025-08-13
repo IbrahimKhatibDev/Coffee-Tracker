@@ -54,10 +54,13 @@ The app lets you log your coffee brews, track extraction timers, save brewing pa
 ---
 
 ## 📂 Project Structure
-.
+
 ├── index.html # Main HTML structure
+
 ├── styles.css # Theme, layout, and component styles
+
 ├── app.js # App logic and event handling
+
 └── README.md # Project documentation
 
 
