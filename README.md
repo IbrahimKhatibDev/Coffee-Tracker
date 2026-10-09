@@ -2,7 +2,7 @@
 
 A web app for tracking espresso brews, extraction times, tasting notes, and brewing parameters, with a focus on **ease of use**, **personalization**, and **local data storage**.
 
-The app lets you log your coffee brews, time extractions, reuse your usual setup, and filter past brews. All data is stored in your browser's **Local Storage**, so no server or account setup is required.
+The app lets you log your coffee brews, time extractions, reuse your usual setup, and filter past brews. All data is stored in your browser (**Local Storage**, with photos in **IndexedDB**), so no server or account setup is required.
 
 ---
 
@@ -13,15 +13,22 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
   - Dose in/out (grams) with a live brew ratio preview
   - Tasting notes with autocomplete suggestions
   - Additional observations
+  - Optional photo per brew (click or drag and drop)
 
 - **Extraction Timer**
   - Start/stop timer
   - Manual time entry (e.g. `00:28.50`) with validation
   - Clear/reset timer
 
+- **Brew Photos**
+  - Photos are resized and compressed in the browser before saving
+  - Shown on the right-hand side of each card; tap it to view full size
+  - Replace or remove a photo while editing a brew
+
 - **Edit & Delete Saved Brews**
   - Inline editing with the same validation as the main form
   - Confirmation modals for deleting and discarding edits
+  - Bulk delete: select several brews (or all shown) and delete them at once
 
 - **Filtering and Sorting**
   - Filter by roast level and tasting notes
@@ -35,7 +42,7 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
   - Last-used brand, roast level, machine, and grinder are pre-filled
 
 - **Export / Import**
-  - Export all brews to a dated JSON file
+  - Export all brews, including photos, to a dated JSON file
   - Import a backup; invalid entries and duplicates are skipped
 
 - **Validation & Messaging**
@@ -58,6 +65,7 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
   - DOM manipulation
   - Event handling
   - Local Storage API
+  - IndexedDB for photos
 
 ---
 
@@ -88,10 +96,6 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
 
 ## Roadmap
 
-- **Image Uploads**
-  - Add an optional photo per brew
-- **Bulk Delete**
-  - Select multiple brews to remove
 - **Improved Mobile UI**
   - More touch-friendly controls
 - **React Rebuild**

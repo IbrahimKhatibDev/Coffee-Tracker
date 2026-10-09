@@ -130,6 +130,10 @@
                         <textarea id="observations" rows="4" maxlength="500"
                             placeholder="Channeling? Sour finish? Anything worth remembering..."></textarea>
                     </div>
+
+                    <div class="input-group" id="photoGroup">
+                        <label for="photoInput">Photo <span class="optional">(optional)</span></label>
+                    </div>
                 </fieldset>
 
                 <div class="button-group">
@@ -142,6 +146,7 @@
             <div class="section-heading">
                 <h2>Saved Brews</h2>
                 <div class="library-bar">
+                    <button type="button" id="selectButton" class="library-btn" aria-pressed="false">Select</button>
                     <button type="button" id="exportButton" class="library-btn">Export</button>
                     <button type="button" id="importButton" class="library-btn">Import</button>
                     <input type="file" id="importFile" accept="application/json,.json" hidden />
@@ -200,9 +205,24 @@
                     </div>
                 </div>
             </section>
+            <div id="bulkBar" class="bulk-bar" role="toolbar" aria-label="Bulk actions" hidden>
+                <label class="bulk-all">
+                    <input type="checkbox" id="selectAll" />
+                    <span>Select all shown</span>
+                </label>
+                <span id="selectedCount" class="bulk-count" aria-live="polite">0 selected</span>
+                <div class="bulk-actions">
+                    <button type="button" id="bulkDeleteButton" class="card-btn delete-btn" disabled>Delete</button>
+                    <button type="button" id="bulkDoneButton" class="card-btn edit-btn">Done</button>
+                </div>
+            </div>
             <div id="brewLogContainer" class="cards"></div>
         </section>
     </main>
+    <dialog id="photoViewer" class="photo-viewer" aria-label="Brew photo">
+        <img id="photoViewerImage" alt="" />
+        <button id="photoViewerClose" class="photo-viewer-close" type="button" aria-label="Close photo">&times;</button>
+    </dialog>
     <div id="confirmModal" class="confirm-modal hidden">
         <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmMessage">
             <p id="confirmMessage">Are you sure?</p>

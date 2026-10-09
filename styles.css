@@ -908,6 +908,316 @@ textarea {
   display: none;
 }
 
+/* -------------------- PHOTOS -------------------- */
+.optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* The file input stays focusable but is drawn by the drop zone */
+.input-group .photo-input,
+.edit-field .photo-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.photo-field {
+  position: relative;
+  min-width: 0;
+}
+
+.input-group .photo-drop,
+.edit-field .photo-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-color);
+  background-color: var(--input-bg);
+  border: 1.5px dashed var(--input-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.edit-field .photo-drop {
+  padding: 1rem;
+}
+
+.photo-drop:hover,
+.photo-drop.is-dragging {
+  border-color: var(--caramel);
+  background-color: var(--surface-sunken);
+}
+
+.photo-input:focus-visible + .photo-drop {
+  border-color: var(--caramel);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.photo-input.input-error + .photo-drop {
+  border-color: var(--danger);
+  background-color: var(--danger-bg);
+}
+
+.photo-drop.is-busy {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.photo-drop-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.photo-drop-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.photo-drop[hidden],
+.photo-preview[hidden] {
+  display: none;
+}
+
+.photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.photo-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.edit-field:has(.photo-field) {
+  align-items: start;
+}
+
+.edit-field:has(.photo-field) > label {
+  padding-top: 0.5rem;
+}
+
+.edit-field .photo-preview img {
+  max-height: 160px;
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.photo-field + .field-error {
+  grid-column: 2;
+}
+
+/* Photo on the right of a saved brew card */
+.card-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-photo {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  margin-top: 0.6rem;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  cursor: zoom-in;
+}
+
+.card-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card-photo:hover img {
+  transform: scale(1.05);
+}
+
+.selecting .card-photo {
+  cursor: pointer;
+}
+
+.card-photo:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Full-size viewer */
+.photo-viewer {
+  max-width: min(92vw, 1100px);
+  max-height: 90vh;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+}
+
+.photo-viewer::backdrop {
+  background: rgba(20, 12, 8, 0.8);
+  backdrop-filter: blur(3px);
+}
+
+.photo-viewer[open] {
+  animation: pop-in 0.18s ease-out;
+}
+
+.photo-viewer img {
+  display: block;
+  max-width: min(92vw, 1100px);
+  max-height: 90vh;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+}
+
+.photo-viewer-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #fff;
+  background-color: rgba(20, 12, 8, 0.65);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.photo-viewer-close:hover {
+  background-color: rgba(20, 12, 8, 0.85);
+}
+
+.photo-viewer-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* -------------------- BULK SELECT -------------------- */
+.library-btn[aria-pressed="true"] {
+  color: var(--on-accent);
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.library-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bulk-bar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.bulk-bar[hidden] {
+  display: none;
+}
+
+.bulk-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bulk-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.bulk-actions .card-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bulk-actions .delete-btn:disabled:hover {
+  color: var(--danger);
+  background-color: transparent;
+}
+
+.bulk-all input,
+.card-select {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.card-select {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.brew-card.is-selectable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.brew-card.is-selected {
+  border-color: var(--caramel);
+  border-left-color: var(--roast);
+  box-shadow: 0 0 0 2px var(--caramel), var(--shadow-sm);
+}
+
 /* -------------------- CONFIRM MODAL -------------------- */
 .confirm-modal {
   position: fixed;
@@ -1035,11 +1345,30 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .bulk-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .card-body {
+    gap: 0.85rem;
+  }
+
+  .card-photo {
+    width: 96px;
+    height: 96px;
+  }
+
+  .bulk-actions .card-btn {
+    flex: 1;
+  }
+
   .edit-field {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .edit-field .field-error {
+  .edit-field .field-error,
+  .photo-field + .field-error {
     grid-column: 1;
   }
 }

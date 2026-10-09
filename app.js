@@ -37,6 +37,14 @@ const importButton = document.getElementById("importButton");
 const importFile = document.getElementById("importFile");
 const libraryStatus = document.getElementById("libraryStatus");
 
+// Bulk selection elements
+const selectButton = document.getElementById("selectButton");
+const bulkBar = document.getElementById("bulkBar");
+const selectAll = document.getElementById("selectAll");
+const selectedCount = document.getElementById("selectedCount");
+const bulkDeleteButton = document.getElementById("bulkDeleteButton");
+const bulkDoneButton = document.getElementById("bulkDoneButton");
+
 // Form inputs keyed by the field names used in validation
 const formFields = {
   brand,
@@ -135,6 +143,8 @@ const updateFilterSummary = (shown) => {
 // globals
 let brewLog = [];
 let editingCard = null;
+let selectMode = false;
+const selectedIds = new Set();
 let activeFilters = { roastLevel: "", sort: "", tags: [] };
 
 // tasting notes
@@ -587,6 +597,248 @@ const toBrewFields = (values) => ({
   observations: values.observations.trim(),
 });
 
+// -------------------- PHOTOS --------------------
+
+const MAX_PHOTO_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_STORED_PHOTO_BYTES = 5 * 1024 * 1024;
+const PHOTO_MAX_EDGE = 1600;
+const PHOTO_QUALITY = 0.82;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PHOTO_DATA_URL = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
+const DRAFT_PHOTO_KEY = "draft";
+
+// Photos live in IndexedDB (keyed by brew id) since localStorage is only ~5 MB
+let photoDbPromise = null;
+
+const openPhotoDb = () => {
+  photoDbPromise ??= new Promise((resolve, reject) => {
+    const request = indexedDB.open("espresso-plus-plus", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore("photos");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  }).catch((error) => {
+    photoDbPromise = null; // allow a retry later
+    throw error;
+  });
+  return photoDbPromise;
+};
+
+const photoRequest = async (mode, makeRequest) => {
+  const db = await openPhotoDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("photos", mode);
+    const request = makeRequest(tx.objectStore("photos"));
+    tx.oncomplete = () => resolve(request.result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
+
+const getPhoto = (key) => photoRequest("readonly", (store) => store.get(key));
+const putPhoto = (key, blob) =>
+  photoRequest("readwrite", (store) => store.put(blob, key));
+const deletePhoto = (key) =>
+  photoRequest("readwrite", (store) => store.delete(key)).catch(() => {});
+
+// Object URLs for card images, shared across re-renders
+const photoUrls = new Map();
+
+const loadPhotoUrl = (id) => {
+  if (!photoUrls.has(id)) {
+    photoUrls.set(
+      id,
+      getPhoto(id)
+        .then((blob) => (blob ? URL.createObjectURL(blob) : null))
+        .catch(() => null)
+    );
+  }
+  return photoUrls.get(id);
+};
+
+const forgetPhotoUrl = (id) => {
+  photoUrls.get(id)?.then((url) => url && URL.revokeObjectURL(url));
+  photoUrls.delete(id);
+};
+
+// Shrink a picked image to a reasonable JPEG; throws an Error with a user-facing message
+const compressPhoto = async (file) => {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Choose an image file, such as a JPG or PNG.");
+  }
+  if (file.size > MAX_PHOTO_UPLOAD_BYTES) {
+    throw new Error("That photo is over 20 MB. Choose a smaller one.");
+  }
+
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new Error("Couldn't read that image. Try a JPG or PNG.");
+  }
+
+  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext("2d");
+  // JPEG has no transparency, so give see-through PNGs a white background
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", PHOTO_QUALITY)
+  );
+  if (!blob) throw new Error("Couldn't process that image. Try another one.");
+  return blob;
+};
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+
+// Turn an imported data URL back into an image blob, or null if it isn't one
+const dataUrlToPhoto = async (value) => {
+  if (typeof value !== "string" || !PHOTO_DATA_URL.test(value)) return null;
+  try {
+    const blob = await (await fetch(value)).blob();
+    return PHOTO_TYPES.includes(blob.type) && blob.size <= MAX_STORED_PHOTO_BYTES
+      ? blob
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+// Build a photo picker (drop zone, preview, replace/remove) inside a field group
+const createPhotoField = (group, { id, onChange }) => {
+  let photo = null;
+  let previewUrl = null;
+  let busy = false;
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.id = id;
+  input.accept = "image/*";
+  input.className = "photo-input";
+
+  const dropZone = document.createElement("label");
+  dropZone.htmlFor = id;
+  dropZone.className = "photo-drop";
+  const dropTitle = document.createElement("span");
+  dropTitle.className = "photo-drop-title";
+  const dropHint = document.createElement("span");
+  dropHint.className = "photo-drop-hint";
+  dropZone.append(dropTitle, dropHint);
+
+  const preview = document.createElement("div");
+  preview.className = "photo-preview";
+  preview.hidden = true;
+  const image = document.createElement("img");
+  image.alt = "Selected brew photo";
+  const actions = document.createElement("div");
+  actions.className = "photo-actions";
+  const replaceButton = createCardButton("Replace", "edit-btn");
+  const removeButton = createCardButton("Remove", "delete-btn");
+  actions.append(replaceButton, removeButton);
+  preview.append(image, actions);
+
+  const widget = document.createElement("div");
+  widget.className = "photo-field";
+  widget.append(input, dropZone, preview);
+  group.appendChild(widget);
+
+  const setBusy = (isBusy) => {
+    busy = isBusy;
+    dropZone.classList.toggle("is-busy", isBusy);
+    dropTitle.textContent = isBusy ? "Processing photo…" : "Add a photo";
+    dropHint.textContent = isBusy
+      ? "This only takes a moment."
+      : "Click to choose, or drag an image here";
+  };
+  setBusy(false);
+
+  // Show the photo (or the drop zone) without reporting a change
+  const show = (blob) => {
+    photo = blob;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = blob ? URL.createObjectURL(blob) : null;
+    image.src = previewUrl ?? "";
+    preview.hidden = !blob;
+    dropZone.hidden = Boolean(blob);
+    // The Replace button takes over from the hidden drop zone
+    input.tabIndex = blob ? -1 : 0;
+  };
+
+  const handleFile = async (file) => {
+    if (!file || busy) return;
+    clearFieldError(input);
+    setBusy(true);
+    try {
+      show(await compressPhoto(file));
+      onChange?.();
+    } catch (error) {
+      setFieldError(input, error.message);
+    } finally {
+      setBusy(false);
+      input.value = "";
+    }
+  };
+
+  input.addEventListener("change", () => handleFile(input.files[0]));
+  replaceButton.addEventListener("click", () => input.click());
+  removeButton.addEventListener("click", () => {
+    show(null);
+    clearFieldError(input);
+    onChange?.();
+    input.focus();
+  });
+
+  dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    dropZone.classList.add("is-dragging");
+  });
+  dropZone.addEventListener("dragleave", () =>
+    dropZone.classList.remove("is-dragging")
+  );
+  dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    dropZone.classList.remove("is-dragging");
+    handleFile(event.dataTransfer.files[0]);
+  });
+
+  return {
+    input,
+    get: () => photo,
+    set: show,
+    clear: () => show(null),
+    isBusy: () => busy,
+  };
+};
+
+// Full-size photo viewer
+const photoViewer = document.getElementById("photoViewer");
+const photoViewerImage = document.getElementById("photoViewerImage");
+
+const openPhotoViewer = (src, alt) => {
+  photoViewerImage.src = src;
+  photoViewerImage.alt = alt;
+  photoViewer.showModal();
+};
+
+document
+  .getElementById("photoViewerClose")
+  .addEventListener("click", () => photoViewer.close());
+// Clicking the dimmed backdrop (the dialog itself, not its contents) closes it
+photoViewer.addEventListener("click", (event) => {
+  if (event.target === photoViewer) photoViewer.close();
+});
+
 // -------------------- CARDS --------------------
 
 const createCardButton = (label, className, type = "button") => {
@@ -639,6 +891,7 @@ const createBrewCard = (brew) => {
   header.className = "card-header";
 
   const heading = document.createElement("div");
+  heading.className = "card-heading";
   const title = document.createElement("h3");
   title.textContent = brew.brand || "Untitled brew";
 
@@ -663,6 +916,60 @@ const createBrewCard = (brew) => {
   }
   card.appendChild(header);
 
+  // Brew details on the left, photo (if any) on the right
+  const body = document.createElement("div");
+  body.className = "card-body";
+  const main = document.createElement("div");
+  main.className = "card-main";
+  body.appendChild(main);
+  card.appendChild(body);
+
+  if (selectMode) {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "card-select";
+    checkbox.checked = selectedIds.has(brew.id);
+    checkbox.setAttribute("aria-label", `Select ${brew.brand || "untitled"} brew`);
+    header.prepend(checkbox);
+    card.classList.add("is-selectable");
+    card.classList.toggle("is-selected", checkbox.checked);
+
+    checkbox.addEventListener("change", () =>
+      setBrewSelected(card, brew.id, checkbox.checked)
+    );
+    // Clicking anywhere on the card toggles it
+    card.addEventListener("click", (event) => {
+      if (event.target === checkbox) return;
+      checkbox.checked = !checkbox.checked;
+      setBrewSelected(card, brew.id, checkbox.checked);
+    });
+  }
+
+  if (brew.hasPhoto) {
+    const alt = `Photo of the ${brew.brand || "untitled"} brew`;
+    const photoButton = document.createElement("button");
+    photoButton.type = "button";
+    photoButton.className = "card-photo";
+    photoButton.setAttribute("aria-label", `View ${alt.toLowerCase()}`);
+    const image = document.createElement("img");
+    image.alt = alt;
+    image.loading = "lazy";
+    photoButton.appendChild(image);
+    // Shown on the right of the card body; click it for the full-size view
+    body.appendChild(photoButton);
+
+    loadPhotoUrl(brew.id).then((url) => {
+      if (!url) {
+        photoButton.remove();
+        return;
+      }
+      image.src = url;
+      photoButton.addEventListener("click", () => {
+        if (!selectMode) openPhotoViewer(url, alt);
+      });
+    });
+  }
+
   const gearParts = [
     brew.machine,
     brew.grinder,
@@ -672,7 +979,7 @@ const createBrewCard = (brew) => {
     const gear = document.createElement("p");
     gear.className = "card-gear";
     gear.textContent = gearParts.join(" · ");
-    card.appendChild(gear);
+    main.appendChild(gear);
   }
 
   const stats = document.createElement("dl");
@@ -683,7 +990,7 @@ const createBrewCard = (brew) => {
     createStat("Ratio", formatRatio(brew.doseIn, brew.doseOut)),
     createStat("Time", brew.extractionTime || "—")
   );
-  card.appendChild(stats);
+  main.appendChild(stats);
 
   if (brew.tasteNotes.length) {
     const notes = document.createElement("div");
@@ -694,14 +1001,14 @@ const createBrewCard = (brew) => {
       chip.textContent = note;
       notes.appendChild(chip);
     });
-    card.appendChild(notes);
+    main.appendChild(notes);
   }
 
   if (brew.observations) {
     const obs = document.createElement("p");
     obs.className = "card-observations";
     obs.textContent = brew.observations;
-    card.appendChild(obs);
+    main.appendChild(obs);
   }
 
   const actions = document.createElement("div");
@@ -712,7 +1019,7 @@ const createBrewCard = (brew) => {
   editButton.setAttribute("aria-label", `Edit ${label} brew`);
   deleteButton.setAttribute("aria-label", `Delete ${label} brew`);
   actions.append(editButton, deleteButton);
-  card.appendChild(actions);
+  if (!selectMode) card.appendChild(actions);
 
   editButton.addEventListener("click", () => {
     if (editingCard) return; // one edit at a time
@@ -812,6 +1119,31 @@ const openEditor = (card, brew) => {
   inputs.tasteNotes.value = brew.tasteNotes.join(", ");
   inputs.observations.value = brew.observations ?? "";
 
+  // Photo: only touch storage on save if the user changed it
+  const photoGroup = document.createElement("div");
+  photoGroup.className = "edit-field";
+  const photoLabel = document.createElement("label");
+  photoLabel.htmlFor = `edit-${brew.id}-photo`;
+  photoLabel.textContent = "Photo";
+  photoGroup.appendChild(photoLabel);
+  editForm.appendChild(photoGroup);
+
+  let photoChanged = false;
+  const editPhoto = createPhotoField(photoGroup, {
+    id: `edit-${brew.id}-photo`,
+    onChange: () => {
+      photoChanged = true;
+    },
+  });
+  inputs.photo = editPhoto.input;
+  if (brew.hasPhoto) {
+    getPhoto(brew.id)
+      .then((blob) => {
+        if (blob && !photoChanged) editPhoto.set(blob);
+      })
+      .catch(() => {});
+  }
+
   const actions = document.createElement("div");
   actions.className = "card-actions";
   const cancelButton = createCardButton("Cancel", "cancel-btn");
@@ -843,17 +1175,33 @@ const openEditor = (card, brew) => {
     };
 
     const errors = validateBrew(values);
+    if (editPhoto.isBusy()) {
+      errors.push({ field: "photo", message: "Still processing the photo. Try again in a moment." });
+    }
     if (errors.length > 0) {
       reportErrors(errors, (field) => inputs[field], status);
       return;
     }
     clearStatus(status);
 
-    showConfirm("Save changes to this brew?", (confirmed) => {
+    showConfirm("Save changes to this brew?", async (confirmed) => {
       if (!confirmed) return;
 
-      const previousLog = brewLog;
+      const newPhoto = editPhoto.get();
       const updatedBrew = { ...brew, ...toBrewFields(values) };
+      if (photoChanged) {
+        if (newPhoto) {
+          try {
+            await putPhoto(brew.id, newPhoto);
+          } catch {
+            setStatus(status, "error", "Couldn't save the photo. Your browser's storage may be full.");
+            return;
+          }
+        }
+        updatedBrew.hasPhoto = Boolean(newPhoto);
+      }
+
+      const previousLog = brewLog;
       brewLog = brewLog.map((entry) =>
         entry.id === brew.id ? updatedBrew : entry
       );
@@ -861,6 +1209,10 @@ const openEditor = (card, brew) => {
       if (!persistBrewLog(status)) {
         brewLog = previousLog;
         return;
+      }
+      if (photoChanged) {
+        if (!newPhoto) await deletePhoto(brew.id);
+        forgetPhotoUrl(brew.id);
       }
       renderCoffeeCard();
     });
@@ -883,6 +1235,15 @@ const renderCoffeeCard = () => {
 
   const visibleBrews = getVisibleBrews();
   updateFilterSummary(visibleBrews.length);
+
+  // Only brews on screen can stay selected, so hidden ones are never deleted
+  const visibleIds = new Set(visibleBrews.map((brew) => brew.id));
+  selectedIds.forEach((id) => {
+    if (!visibleIds.has(id)) selectedIds.delete(id);
+  });
+  selectButton.disabled = brewLog.length === 0;
+  if (selectMode && brewLog.length === 0) setSelectMode(false, { render: false });
+  updateBulkBar(visibleBrews.length);
 
   if (visibleBrews.length === 0) {
     const emptyMessage = document.createElement("p");
@@ -916,9 +1277,103 @@ const cardDelete = (id) => {
       brewLog = previousLog;
       return;
     }
+    deletePhoto(id);
+    forgetPhotoUrl(id);
     renderCoffeeCard();
   });
 };
+
+// -------------------- BULK DELETE --------------------
+
+const updateBulkBar = (shown = getVisibleBrews().length) => {
+  const count = selectedIds.size;
+  selectedCount.textContent = `${count} selected`;
+  bulkDeleteButton.disabled = count === 0;
+  bulkDeleteButton.textContent = count > 0 ? `Delete (${count})` : "Delete";
+  selectAll.disabled = shown === 0;
+  selectAll.checked = shown > 0 && count === shown;
+  selectAll.indeterminate = count > 0 && count < shown;
+};
+
+const setBrewSelected = (card, id, selected) => {
+  if (selected) {
+    selectedIds.add(id);
+  } else {
+    selectedIds.delete(id);
+  }
+  card.classList.toggle("is-selected", selected);
+  updateBulkBar();
+};
+
+const setSelectMode = (on, { render = true } = {}) => {
+  selectMode = on;
+  selectedIds.clear();
+  bulkBar.hidden = !on;
+  selectButton.setAttribute("aria-pressed", String(on));
+  selectButton.textContent = on ? "Cancel" : "Select";
+  brewLogContainer.classList.toggle("selecting", on);
+  if (render) renderCoffeeCard();
+};
+
+selectButton.addEventListener("click", () => {
+  if (!selectMode && editingCard) {
+    setStatus(libraryStatus, "error", "Finish editing your brew first.");
+    return;
+  }
+  setSelectMode(!selectMode);
+  if (selectMode) selectAll.focus();
+});
+
+bulkDoneButton.addEventListener("click", () => {
+  setSelectMode(false);
+  selectButton.focus();
+});
+
+selectAll.addEventListener("change", () => {
+  const select = selectAll.checked;
+  brewLogContainer.querySelectorAll(".brew-card").forEach((card) => {
+    const checkbox = card.querySelector(".card-select");
+    if (checkbox && checkbox.checked !== select) checkbox.click();
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  const modalOpen =
+    !document.getElementById("confirmModal").classList.contains("hidden") ||
+    photoViewer.open;
+  if (event.key === "Escape" && selectMode && !modalOpen) {
+    setSelectMode(false);
+    selectButton.focus();
+  }
+});
+
+bulkDeleteButton.addEventListener("click", () => {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  const label = ids.length === 1 ? "this brew" : `these ${ids.length} brews`;
+
+  showConfirm(`Delete ${label}? This can't be undone.`, (confirmed) => {
+    if (!confirmed) return;
+
+    const doomed = new Set(ids);
+    const previousLog = brewLog;
+    brewLog = brewLog.filter((entry) => !doomed.has(entry.id));
+    if (!persistBrewLog(libraryStatus)) {
+      brewLog = previousLog;
+      return;
+    }
+    ids.forEach((id) => {
+      deletePhoto(id);
+      forgetPhotoUrl(id);
+    });
+    setSelectMode(false);
+    setStatus(
+      libraryStatus,
+      "success",
+      `Deleted ${ids.length} brew${ids.length === 1 ? "" : "s"}.`
+    );
+  });
+});
 
 // -------------------- TAG INPUTS --------------------
 
@@ -1102,6 +1557,21 @@ resetFiltersButton.addEventListener("click", () => {
 
 // -------------------- DRAFT --------------------
 
+// Main form photo; an unsaved photo is kept in IndexedDB alongside the draft
+const mainPhoto = createPhotoField(document.getElementById("photoGroup"), {
+  id: "photoInput",
+  onChange: () => {
+    const photo = mainPhoto.get();
+    if (photo) {
+      putPhoto(DRAFT_PHOTO_KEY, photo).catch(() => {});
+    } else {
+      deletePhoto(DRAFT_PHOTO_KEY);
+    }
+    saveDraft();
+  },
+});
+formFields.photo = mainPhoto.input;
+
 const DRAFT_TEXT_FIELDS = [
   "brand",
   "roastLevel",
@@ -1115,7 +1585,10 @@ const DRAFT_TEXT_FIELDS = [
 
 // Keep the unfinished form so a refresh or closed tab doesn't lose it
 const saveDraft = () => {
-  const draft = { tasteNotes: tastingNotes.getTags() };
+  const draft = {
+    tasteNotes: tastingNotes.getTags(),
+    hasPhoto: Boolean(mainPhoto.get()),
+  };
   DRAFT_TEXT_FIELDS.forEach((key) => {
     draft[key] = formFields[key].value;
   });
@@ -1125,6 +1598,7 @@ const saveDraft = () => {
   }
 
   const hasContent =
+    draft.hasPhoto ||
     draft.tasteNotes.length > 0 ||
     draft.extractionTime ||
     ["grindSize", "doseIn", "doseOut", "observations"].some(
@@ -1134,16 +1608,21 @@ const saveDraft = () => {
   if (hasContent) {
     writeStorage("draft", draft);
   } else {
-    clearDraft();
+    removeDraftFields();
   }
 };
 
-const clearDraft = () => {
+const removeDraftFields = () => {
   try {
     localStorage.removeItem("draft");
   } catch {
     // Storage unavailable: nothing to clear
   }
+};
+
+const clearDraft = () => {
+  removeDraftFields();
+  deletePhoto(DRAFT_PHOTO_KEY);
 };
 
 // Returns true if a draft was put back into the form
@@ -1163,6 +1642,13 @@ const restoreDraft = () => {
       : null;
   if (draftMs !== null) extractionTimeDisplay.value = dateToStr(draftMs);
   if (Array.isArray(draft.tasteNotes)) tastingNotes.set(draft.tasteNotes);
+  if (draft.hasPhoto === true) {
+    getPhoto(DRAFT_PHOTO_KEY)
+      .then((blob) => {
+        if (blob && !mainPhoto.get()) mainPhoto.set(blob);
+      })
+      .catch(() => {});
+  }
 
   updateRatioPreview();
   return true;
@@ -1192,13 +1678,17 @@ const resetForm = () => {
   form.reset();
   resetTimer();
   tastingNotes.clear();
+  mainPhoto.clear();
   clearAllFieldErrors(form);
   updateRatioPreview();
 };
 
 // Handle form submit: validate, log, render
-const saveCoffeeLog = (event) => {
+const saveButton = document.getElementById("saveButton");
+
+const saveCoffeeLog = async (event) => {
   event.preventDefault();
+  if (saveButton.disabled) return; // a save is already in progress
   if (timerState.isRunning) stopTimer();
   clearAllFieldErrors(form);
 
@@ -1221,16 +1711,36 @@ const saveCoffeeLog = (event) => {
   if (pendingTagError && !errors.some(({ field }) => field === "tasteNotes")) {
     errors.push({ field: "tasteNotes", message: pendingTagError });
   }
+  if (mainPhoto.isBusy()) {
+    errors.push({ field: "photo", message: "Still processing the photo. Try again in a moment." });
+  }
   if (errors.length > 0) {
     reportErrors(errors, (field) => formFields[field], statusArea);
     return;
   }
 
+  // Store the photo first so the brew never points at a missing one
+  const id = Date.now();
+  const photo = mainPhoto.get();
+  if (photo) {
+    saveButton.disabled = true;
+    try {
+      await putPhoto(id, photo);
+    } catch {
+      setStatus(statusArea, "error", "Couldn't save the photo. Your browser's storage may be full.");
+      return;
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
+
   // Create a new brew entry object and save it
-  const coffeeBrew = { id: Date.now(), ...toBrewFields(values) };
+  const coffeeBrew = { id, ...toBrewFields(values) };
+  if (photo) coffeeBrew.hasPhoto = true;
   brewLog.unshift(coffeeBrew);
   if (!persistBrewLog()) {
     brewLog.shift();
+    if (photo) deletePhoto(id);
     return;
   }
 
@@ -1254,19 +1764,37 @@ const saveCoffeeLog = (event) => {
 // -------------------- EXPORT / IMPORT --------------------
 
 const EXPORT_APP_NAME = "espresso-plus-plus";
-const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+const MAX_IMPORT_BYTES = 100 * 1024 * 1024;
 
-const exportBrews = () => {
+// Attach each brew's photo as a data URL so the export is one portable file
+const brewsWithPhotos = () =>
+  Promise.all(
+    brewLog.map(async ({ hasPhoto, ...brew }) => {
+      if (!hasPhoto) return brew;
+      try {
+        const blob = await getPhoto(brew.id);
+        return blob ? { ...brew, photo: await blobToDataUrl(blob) } : brew;
+      } catch {
+        return brew;
+      }
+    })
+  );
+
+const exportBrews = async () => {
   if (brewLog.length === 0) {
     setStatus(libraryStatus, "error", "No brews to export yet.");
     return;
   }
 
+  exportButton.disabled = true;
+  const brews = await brewsWithPhotos();
+  exportButton.disabled = false;
+
   const data = {
     app: EXPORT_APP_NAME,
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    brews: brewLog,
+    brews,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json",
@@ -1278,12 +1806,11 @@ const exportBrews = () => {
   link.click();
   URL.revokeObjectURL(url);
 
-  const count = brewLog.length;
-  setStatus(
-    libraryStatus,
-    "success",
-    `Exported ${count} brew${count === 1 ? "" : "s"}.`
-  );
+  const count = brews.length;
+  const photos = brews.filter((brew) => brew.photo).length;
+  let message = `Exported ${count} brew${count === 1 ? "" : "s"}`;
+  if (photos > 0) message += ` with ${photos} photo${photos === 1 ? "" : "s"}`;
+  setStatus(libraryStatus, "success", `${message}.`);
 };
 
 // Run an imported entry through the same checks as the form; null if unusable
@@ -1328,6 +1855,7 @@ const importBrews = async (file) => {
 
   const existingIds = new Set(brewLog.map((brew) => brew.id));
   const added = [];
+  const photoFor = new Map();
   let invalid = 0;
 
   entries.forEach((entry) => {
@@ -1337,6 +1865,7 @@ const importBrews = async (file) => {
     } else if (!existingIds.has(brew.id)) {
       existingIds.add(brew.id);
       added.push(brew);
+      if (entry.photo) photoFor.set(brew.id, entry.photo);
     }
   });
 
@@ -1348,15 +1877,36 @@ const importBrews = async (file) => {
     return;
   }
 
+  // Store valid photos first; a brew whose photo can't be used is kept without it
+  importButton.disabled = true;
+  const photoIds = [];
+  for (const brew of added) {
+    const photo = await dataUrlToPhoto(photoFor.get(brew.id));
+    if (!photo) continue;
+    try {
+      await putPhoto(brew.id, photo);
+      brew.hasPhoto = true;
+      photoIds.push(brew.id);
+    } catch {
+      // Storage full: import the brew without its photo
+    }
+  }
+  importButton.disabled = false;
+
   const previous = brewLog;
   brewLog = [...brewLog, ...added].sort((a, b) => b.id - a.id);
   if (!persistBrewLog(libraryStatus)) {
     brewLog = previous;
+    photoIds.forEach(deletePhoto);
     return;
   }
 
   renderCoffeeCard();
-  let message = `Imported ${added.length} brew${added.length === 1 ? "" : "s"}.`;
+  let message = `Imported ${added.length} brew${added.length === 1 ? "" : "s"}`;
+  if (photoIds.length > 0) {
+    message += ` with ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"}`;
+  }
+  message += ".";
   if (invalid > 0) {
     message += ` Skipped ${invalid} that ${invalid === 1 ? "wasn't" : "weren't"} valid.`;
   }
