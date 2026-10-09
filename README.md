@@ -4,6 +4,8 @@ A web app for tracking espresso brews, extraction times, tasting notes, and brew
 
 The app lets you log your coffee brews, time extractions, reuse your usual setup, and filter past brews. All data is stored in your browser (**Local Storage**, with photos in **IndexedDB**), so no server or account setup is required.
 
+**Live at [espressotracker.vercel.app](https://espressotracker.vercel.app)**
+
 ---
 
 ## Features
@@ -13,7 +15,7 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
   - Dose in/out (grams) with a live brew ratio preview
   - Tasting notes with autocomplete suggestions
   - Additional observations
-  - Optional photo per brew (click or drag and drop)
+  - Optional photo per brew (click, drag and drop, or take one with your phone's camera)
 
 - **Extraction Timer**
   - Start/stop timer
@@ -22,6 +24,7 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
 
 - **Brew Photos**
   - Photos are resized and compressed in the browser before saving
+  - On phones and tablets, a **Take photo** button opens the rear camera directly, and **Retake** replaces the current photo with a new shot
   - Shown on the right-hand side of each card; tap it to view full size
   - Replace or remove a photo while editing a brew
 
