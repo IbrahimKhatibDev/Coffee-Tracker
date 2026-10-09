@@ -549,45 +549,132 @@ textarea {
 }
 
 .filterBrews {
-  min-width: 0;
   margin: 0 0 1.5rem;
-  padding: 1rem 1.5rem 1.25rem;
+  padding: 0;
+  overflow: visible;
 }
 
-.filterBrews legend {
-  padding: 0 0.5rem;
-}
-
-.toggle-filter-btn {
+.filter-toggle {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  color: var(--text-color);
+  background: none;
+  border: none;
+  border-radius: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.filter-toggle:hover {
+  background-color: var(--surface-sunken);
+}
+
+.filter-toggle:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--focus-ring);
+}
+
+.filter-toggle-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.filter-toggle-title {
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--accent-color);
-  background: none;
-  border: none;
-  cursor: pointer;
 }
 
-.toggle-filter-btn span {
-  display: inline-block;
-  width: 1rem;
-  font-size: 1.2rem;
-  text-align: center;
+.filter-summary {
+  overflow: hidden;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-#filterContent {
+.filter-count {
+  flex-shrink: 0;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--on-accent);
+  background-color: var(--accent-color);
+  border-radius: 999px;
+}
+
+.filter-count[hidden] {
+  display: none;
+}
+
+/* A CSS-drawn chevron that points down when open and right when closed */
+.filter-chevron {
+  flex-shrink: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin: 0 0.25rem 0.2rem;
+  border-right: 2px solid var(--accent-color);
+  border-bottom: 2px solid var(--accent-color);
+  transform: rotate(45deg);
+  transition: transform 0.25s ease;
+}
+
+.filter-toggle[aria-expanded="false"] .filter-chevron {
+  margin-bottom: 0;
+  transform: rotate(-45deg);
+}
+
+/* Animate height by transitioning the grid row between 0fr and 1fr */
+.filter-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.no-transition .filter-collapse,
+.no-transition .filter-chevron {
+  transition: none;
+}
+
+.filter-collapse.collapsed {
+  grid-template-rows: 0fr;
+}
+
+.filter-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Once fully open, let the autocomplete dropdown spill past the panel */
+.filter-collapse.settled .filter-collapse-inner {
+  overflow: visible;
+}
+
+.filter-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem 1.25rem;
-  margin-top: 0.75rem;
+  padding: 0.25rem 1.5rem 1.25rem;
 }
 
-#filterContent.hidden {
-  display: none;
+.empty-state .link-btn {
+  margin-left: 0.35rem;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent-color);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .filter-group {
@@ -920,7 +1007,7 @@ textarea {
   }
 
   .form-grid,
-  #filterContent {
+  .filter-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -932,8 +1019,12 @@ textarea {
     width: 100%;
   }
 
-  .filterBrews {
-    padding: 0.75rem 1rem 1rem;
+  .filter-toggle {
+    padding: 0.85rem 1rem;
+  }
+
+  .filter-grid {
+    padding: 0.25rem 1rem 1rem;
   }
 
   .brew-card {

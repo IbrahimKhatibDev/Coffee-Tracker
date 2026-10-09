@@ -148,50 +148,58 @@
                 </div>
             </div>
             <div id="libraryStatus" class="status-area" role="status" aria-live="polite"></div>
-            <fieldset class="filterBrews panel">
-                <legend>
-                    <button id="toggleFilter" class="toggle-filter-btn" type="button" aria-expanded="true">
-                        Filter Brew Logs <span id="toggleIcon">−</span>
-                    </button>
-                </legend>
+            <section class="filterBrews panel" aria-labelledby="filterTitle">
+                <button id="toggleFilter" class="filter-toggle" type="button" aria-expanded="true"
+                    aria-controls="filterContent">
+                    <span class="filter-toggle-text">
+                        <span id="filterTitle" class="filter-toggle-title">Filter Brew Logs</span>
+                        <span id="filterSummary" class="filter-summary">Showing all brews</span>
+                    </span>
+                    <span id="filterCount" class="filter-count" hidden></span>
+                    <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
 
-                <div id="filterContent">
-                    <div class="filter-group">
-                        <label for="filterBrewsByRoast">Roast level</label>
-                        <select id="filterBrewsByRoast">
-                            <option value="">All roasts</option>
-                            <option value="Light">Light</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Dark">Dark</option>
-                        </select>
-                    </div>
+                <div id="filterContent" class="filter-collapse">
+                    <div class="filter-collapse-inner">
+                        <div class="filter-grid">
+                            <div class="filter-group">
+                                <label for="filterBrewsByRoast">Roast level</label>
+                                <select id="filterBrewsByRoast">
+                                    <option value="">All roasts</option>
+                                    <option value="Light">Light</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Dark">Dark</option>
+                                </select>
+                            </div>
 
-                    <div class="filter-group">
-                        <label for="filterBrewsByTime">Sort by</label>
-                        <select id="filterBrewsByTime">
-                            <option value="">Newest first</option>
-                            <option value="Oldest">Oldest first</option>
-                        </select>
-                    </div>
+                            <div class="filter-group">
+                                <label for="filterBrewsByTime">Sort by</label>
+                                <select id="filterBrewsByTime">
+                                    <option value="">Newest first</option>
+                                    <option value="Oldest">Oldest first</option>
+                                </select>
+                            </div>
 
-                    <div class="filter-group full">
-                        <label for="filterTastingNotesInput">Tasting notes</label>
-                        <div id="filterTastingNotesWrapper" class="tags-wrapper">
-                            <input type="text" id="filterTastingNotesInput" placeholder="Type a note and press Enter"
-                                autocomplete="off" maxlength="30" />
-                            <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
-                            <div id="filterTagList" class="tag-list"></div>
-                        </div>
-                    </div>
+                            <div class="filter-group full">
+                                <label for="filterTastingNotesInput">Tasting notes</label>
+                                <div id="filterTastingNotesWrapper" class="tags-wrapper">
+                                    <input type="text" id="filterTastingNotesInput" placeholder="Type a note and press Enter"
+                                        autocomplete="off" maxlength="30" />
+                                    <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
+                                    <div id="filterTagList" class="tag-list"></div>
+                                </div>
+                            </div>
 
-                    <div class="filter-group full">
-                        <div class="button-group">
-                            <button type="button" id="applyFiltersButton" class="btn-primary">Apply Filters</button>
-                            <button type="button" id="resetFiltersButton" class="btn-secondary">Reset</button>
+                            <div class="filter-group full">
+                                <div class="button-group">
+                                    <button type="button" id="applyFiltersButton" class="btn-primary">Apply Filters</button>
+                                    <button type="button" id="resetFiltersButton" class="btn-secondary">Reset</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </fieldset>
+            </section>
             <div id="brewLogContainer" class="cards"></div>
         </section>
     </main>

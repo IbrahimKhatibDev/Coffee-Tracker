@@ -64,16 +64,73 @@ const MAX_RATIO = 6;
 const TAG_PATTERN = /^[\p{L}][\p{L}' -]*$/u;
 const TIME_FORMAT_MESSAGE = "Use the format MM:SS.hh (e.g. 00:28.50).";
 
-// Toggle Button
+// Filter panel toggle
 const toggleBtn = document.getElementById("toggleFilter");
-const toggleIcon = document.getElementById("toggleIcon");
 const filterContent = document.getElementById("filterContent");
+const filterSummary = document.getElementById("filterSummary");
+const filterCount = document.getElementById("filterCount");
+
+const setFiltersOpen = (open, { animate = true } = {}) => {
+  const panel = filterContent.parentElement;
+  if (!animate) panel.classList.add("no-transition");
+
+  toggleBtn.setAttribute("aria-expanded", String(open));
+  // Keep collapsed controls out of the tab order
+  filterContent.inert = !open;
+  filterContent.classList.toggle("collapsed", !open);
+
+  if (!animate) {
+    // Apply the new state instantly, then re-enable transitions
+    void panel.offsetHeight;
+    panel.classList.remove("no-transition");
+  }
+
+  if (!open) {
+    filterContent.classList.remove("settled");
+    return;
+  }
+  const settles =
+    animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!settles) {
+    filterContent.classList.add("settled");
+    return;
+  }
+  filterContent.addEventListener(
+    "transitionend",
+    () => {
+      if (toggleBtn.getAttribute("aria-expanded") === "true") {
+        filterContent.classList.add("settled");
+      }
+    },
+    { once: true }
+  );
+};
 
 toggleBtn.addEventListener("click", () => {
-  const isHidden = filterContent.classList.toggle("hidden");
-  toggleIcon.textContent = isHidden ? "+" : "−";
-  toggleBtn.setAttribute("aria-expanded", !isHidden);
+  const open = toggleBtn.getAttribute("aria-expanded") !== "true";
+  setFiltersOpen(open);
+  writeStorage("filtersOpen", open);
 });
+
+// Describe the applied filters in the header so they're visible when collapsed
+const updateFilterSummary = (shown) => {
+  const { roastLevel, sort, tags } = activeFilters;
+  const parts = [];
+  if (roastLevel) parts.push(`${roastLevel} roast`);
+  if (tags.length > 0) parts.push(tags.join(", "));
+  if (sort === "Oldest") parts.push("oldest first");
+
+  const total = brewLog.length;
+  const count = `${total} brew${total === 1 ? "" : "s"}`;
+  const isFiltered = Boolean(roastLevel) || tags.length > 0;
+  filterSummary.textContent = isFiltered
+    ? `${parts.join(" · ")} (${shown} of ${count})`
+    : `Showing all ${count}${parts.length ? ` · ${parts.join(" · ")}` : ""}`;
+
+  const active = (roastLevel ? 1 : 0) + tags.length;
+  filterCount.hidden = active === 0;
+  filterCount.textContent = `${active} active`;
+};
 
 // globals
 let brewLog = [];
@@ -825,14 +882,21 @@ const renderCoffeeCard = () => {
   editingCard = null;
 
   const visibleBrews = getVisibleBrews();
+  updateFilterSummary(visibleBrews.length);
 
   if (visibleBrews.length === 0) {
     const emptyMessage = document.createElement("p");
     emptyMessage.className = "empty-state";
-    emptyMessage.textContent =
-      brewLog.length === 0
-        ? "No brews yet. Pull your first shot and log it above."
-        : "No brews match these filters.";
+    if (brewLog.length === 0) {
+      emptyMessage.textContent =
+        "No brews yet. Pull your first shot and log it above.";
+    } else {
+      emptyMessage.textContent = "No brews match these filters.";
+      const clearButton = createCardButton("Clear filters", "link-btn");
+      clearButton.classList.remove("card-btn");
+      clearButton.addEventListener("click", () => resetFiltersButton.click());
+      emptyMessage.appendChild(clearButton);
+    }
     brewLogContainer.appendChild(emptyMessage);
     return;
   }
@@ -1324,6 +1388,8 @@ const loadSavedBrewsFromLocalStorage = () => {
         ? brew.tasteNotes.filter((note) => typeof note === "string")
         : [],
     }));
+
+  setFiltersOpen(readStorage("filtersOpen", true) !== false, { animate: false });
 
   // Put back the filters from last visit, keeping only tags that still validate
   const savedFilters = readSavedFilters();
