@@ -5,109 +5,161 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Espresso++</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <!-- Apply the saved theme before first paint to avoid a light-mode flash -->
+    <script>
+        try {
+            const savedTheme = localStorage.getItem("theme");
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add("dark-mode");
+            }
+        } catch (e) { }
+    </script>
     <script src="app.js" defer></script>
 </head>
 
 <body>
     <header class="navbar">
-        <h1>Espresso++</h1>
-        <button id="darkModeToggle" class="dark-toggle">🌙</button>
+        <h1 class="brand-mark"><span aria-hidden="true">☕</span> Espresso++</h1>
+        <button id="darkModeToggle" class="dark-toggle" type="button" aria-label="Toggle dark mode">🌙</button>
     </header>
 
     <main class="container">
-        <section class="section">
-            <h2>Espresso Tracker</h2>
+        <section class="section panel">
+            <div class="section-heading">
+                <h2>Log a Shot</h2>
+                <p class="section-subtitle">Dial in, pull, taste, repeat.</p>
+            </div>
 
-            <div id="errorContainer" class="error-messages"></div>
+            <div id="errorContainer" class="status-area" role="status" aria-live="polite"></div>
 
-            <form class="coffee-tracker">
+            <form class="coffee-tracker" novalidate>
+                <fieldset class="form-section">
+                    <legend>Beans &amp; Gear</legend>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="brand">Coffee brand</label>
+                            <input type="text" placeholder="e.g. Rogue Wave" id="brand" maxlength="60" />
+                        </div>
 
-                <div class="input-group">
-                    <label for="brand">Brand of Coffee:</label>
-                    <input type="text" placeholder="(e.g. Rogue wave coffee)" id="brand" />
-                </div>
+                        <div class="input-group">
+                            <label for="roastLevel">Roast level</label>
+                            <select id="roastLevel">
+                                <option value="">Select roast</option>
+                                <option value="Light">Light</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Dark">Dark</option>
+                            </select>
+                        </div>
 
-                <div class="input-group">
-                    <label for="roastLevel">Roast Level:</label>
-                    <select id="roastLevel">
-                        <option value="">Select roast</option>
-                        <option value="Light">Light</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Dark">Dark</option>
-                    </select>
-                </div>
+                        <div class="input-group">
+                            <label for="machine">Machine</label>
+                            <input type="text" placeholder="e.g. Breville Barista Express" id="machine"
+                                maxlength="60" />
+                        </div>
 
-                <div class="input-group">
-                    <label for="machine">Machine Used:</label>
-                    <input type="text" placeholder="(e.g. Breville Barista Express)" id="machine" />
-                </div>
-
-                <div class="input-group">
-                    <label for="grinder">Grinder Used:</label>
-                    <input type="text" placeholder="(e.g. Fellow Opus Grinder)" id="grinder" />
-                </div>
-
-                <div class="input-group">
-                    <label for="grindSize">Grind Size (e.g. 5):</label>
-                    <input type="number" id="grindSize" placeholder="(e.g. 5)" min="0" max="60" />
-                </div>
-
-                <div class="input-group">
-                    <label for="doseIn">Coffee In (g):</label>
-                    <input type="number" id="doseIn" placeholder="(e.g. 18g)" min="0" max="60" />
-                </div>
-
-                <div class="input-group">
-                    <label>Timer (click to edit):</label>
-                    <input type="text" id="extractionTime" value="00:00.00" />
-                    <div class="button-group">
-                        <button class="start-button" type="button" id="startStop">Start</button>
-                        <button type="button" id="clear">Clear</button>
+                        <div class="input-group">
+                            <label for="grinder">Grinder</label>
+                            <input type="text" placeholder="e.g. Fellow Opus" id="grinder" maxlength="60" />
+                        </div>
                     </div>
-                </div>
+                </fieldset>
 
-                <div class="input-group">
-                    <label for="doseOut">Coffee Out (g):</label>
-                    <input type="number" id="doseOut" placeholder="(e.g. 36g)" min="0" max="100" step="any" />
-                </div>
+                <fieldset class="form-section">
+                    <legend>The Shot</legend>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="grindSize">Grind size</label>
+                            <input type="number" id="grindSize" placeholder="e.g. 5" min="0" max="100" step="any"
+                                inputmode="decimal" />
+                        </div>
 
-                <div class="input-group">
-                    <label for="tastingNotesInput">Tasting Notes:</label>
+                        <div class="input-group">
+                            <label for="doseIn">Dose in (g)</label>
+                            <input type="number" id="doseIn" placeholder="e.g. 18" min="1" max="50" step="any"
+                                inputmode="decimal" />
+                        </div>
 
-                    <div id="tastingNotesWrapper" class="tags-wrapper">
-                        <input type="text" id="tastingNotesInput" placeholder="Type and press Enter..."
-                            autocomplete="off" />
-                        <ul id="tastingSuggestions" class="autocomplete-list"></ul>
-                        <div id="tagList" class="tag-list"></div>
+                        <div class="input-group full timer-group">
+                            <label for="extractionTime">Extraction time</label>
+                            <div class="timer">
+                                <input type="text" id="extractionTime" value="00:00.00" inputmode="decimal"
+                                    aria-describedby="timerHint" />
+                                <div class="button-group">
+                                    <button class="start-button" type="button" id="startStop">Start</button>
+                                    <button type="button" id="clear" class="btn-secondary">Clear</button>
+                                </div>
+                            </div>
+                            <p id="timerHint" class="field-hint">Use the timer, or type a time like 00:28.50</p>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="doseOut">Yield (g)</label>
+                            <input type="number" id="doseOut" placeholder="e.g. 36" min="1" max="150" step="any"
+                                inputmode="decimal" />
+                        </div>
+
+                        <div class="input-group">
+                            <span class="label">Brew ratio</span>
+                            <output id="ratioPreview" class="ratio-preview" for="doseIn doseOut">—</output>
+                        </div>
                     </div>
-                </div>
+                </fieldset>
 
-                <div class="input-group">
-                    <label for="observations">Additional Observations:</label>
-                    <textarea id="observations" rows="4"
-                        placeholder="Write any notes, thoughts, or observations here..."></textarea>
-                </div>
+                <fieldset class="form-section">
+                    <legend>Tasting</legend>
+                    <div class="input-group">
+                        <label for="tastingNotesInput">Tasting notes</label>
+
+                        <div id="tastingNotesWrapper" class="tags-wrapper">
+                            <input type="text" id="tastingNotesInput" placeholder="Type a note and press Enter"
+                                autocomplete="off" maxlength="30" />
+                            <ul id="tastingSuggestions" class="autocomplete-list"></ul>
+                            <div id="tagList" class="tag-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="observations">Observations</label>
+                        <textarea id="observations" rows="4" maxlength="500"
+                            placeholder="Channeling? Sour finish? Anything worth remembering..."></textarea>
+                    </div>
+                </fieldset>
 
                 <div class="button-group">
-                    <button type="submit" id="saveButton">Save Coffee Log</button>
+                    <button type="submit" id="saveButton" class="btn-primary">Save Coffee Log</button>
                 </div>
             </form>
         </section>
+
         <section class="cards-section">
-            <h2>Saved Brews:</h2>
-            <fieldset class="filterBrews">
+            <div class="section-heading">
+                <h2>Saved Brews</h2>
+                <div class="library-bar">
+                    <button type="button" id="exportButton" class="library-btn">Export</button>
+                    <button type="button" id="importButton" class="library-btn">Import</button>
+                    <input type="file" id="importFile" accept="application/json,.json" hidden />
+                </div>
+            </div>
+            <div id="libraryStatus" class="status-area" role="status" aria-live="polite"></div>
+            <fieldset class="filterBrews panel">
                 <legend>
-                    <button id="toggleFilter" class="toggle-filter-btn" aria-expanded="true">
+                    <button id="toggleFilter" class="toggle-filter-btn" type="button" aria-expanded="true">
                         Filter Brew Logs <span id="toggleIcon">−</span>
                     </button>
                 </legend>
 
                 <div id="filterContent">
                     <div class="filter-group">
-                        <label for="filterBrewsByRoast">Roast Level:</label>
+                        <label for="filterBrewsByRoast">Roast level</label>
                         <select id="filterBrewsByRoast">
-                            <option value="">All Roasts</option>
+                            <option value="">All roasts</option>
                             <option value="Light">Light</option>
                             <option value="Medium">Medium</option>
                             <option value="Dark">Dark</option>
@@ -115,26 +167,28 @@
                     </div>
 
                     <div class="filter-group">
-                        <label for="filterBrewsByTime">Sort by Time:</label>
+                        <label for="filterBrewsByTime">Sort by</label>
                         <select id="filterBrewsByTime">
-                            <option value="">--</option>
-                            <option value="Newest">Newest First</option>
-                            <option value="Oldest">Oldest First</option>
+                            <option value="">Newest first</option>
+                            <option value="Oldest">Oldest first</option>
                         </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filterTastingNotesInput">Filter by Tasting Notes:</label>
+                    <div class="filter-group full">
+                        <label for="filterTastingNotesInput">Tasting notes</label>
                         <div id="filterTastingNotesWrapper" class="tags-wrapper">
-                            <input type="text" id="filterTastingNotesInput" placeholder="Type and press Enter..."
-                                autocomplete="off" />
+                            <input type="text" id="filterTastingNotesInput" placeholder="Type a note and press Enter"
+                                autocomplete="off" maxlength="30" />
                             <ul id="filterTastingSuggestions" class="autocomplete-list"></ul>
                             <div id="filterTagList" class="tag-list"></div>
                         </div>
                     </div>
 
-                    <div class="filter-group">
-                        <button type="button" id="applyFiltersButton">Apply Filters</button>
+                    <div class="filter-group full">
+                        <div class="button-group">
+                            <button type="button" id="applyFiltersButton" class="btn-primary">Apply Filters</button>
+                            <button type="button" id="resetFiltersButton" class="btn-secondary">Reset</button>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -142,11 +196,11 @@
         </section>
     </main>
     <div id="confirmModal" class="confirm-modal hidden">
-        <div class="confirm-box">
+        <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmMessage">
             <p id="confirmMessage">Are you sure?</p>
             <div class="confirm-buttons">
-                <button id="confirmYes" class="confirm-btn confirm-yes">Yes</button>
-                <button id="confirmNo" class="confirm-btn confirm-no">Cancel</button>
+                <button id="confirmNo" class="confirm-btn confirm-no" type="button">Cancel</button>
+                <button id="confirmYes" class="confirm-btn confirm-yes" type="button">Yes</button>
             </div>
         </div>
     </div>
