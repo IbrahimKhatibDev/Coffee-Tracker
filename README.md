@@ -75,6 +75,7 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
 ├── index.html   # Main HTML structure
 ├── styles.css   # Theme, layout, and component styles
 ├── app.js       # App logic and event handling
+├── favicon.svg  # Browser tab icon
 └── README.md    # Project documentation
 ```
 
