@@ -7,7 +7,6 @@ let extractionTimeDisplay = document.getElementById("extractionTime");
 
 let tastingSuggestions = document.getElementById("tastingSuggestions");
 let tagList = document.getElementById("tagList");
-let tastingNotesWrapper = document.getElementById("tastingNotesWrapper");
 let tastingNotesInput = document.getElementById("tastingNotesInput");
 let grindSize = document.getElementById("grindSize");
 let observations = document.getElementById("observations");
@@ -26,6 +25,23 @@ let startStopTimer = document.getElementById("startStop");
 let clearTimer = document.getElementById("clear");
 let saveButton = document.getElementById("saveButton");
 
+// Filter elements
+const filterRoast = document.getElementById("filterBrewsByRoast");
+const filterTime = document.getElementById("filterBrewsByTime");
+const applyFiltersButton = document.getElementById("applyFiltersButton");
+
+// Form inputs keyed by the field names used in validation
+const formFields = {
+  brand,
+  roastLevel,
+  machine,
+  grinder,
+  grindSize,
+  doseIn,
+  extractionTime: extractionTimeDisplay,
+  doseOut,
+};
+
 // Toggle Button
 const toggleBtn = document.getElementById("toggleFilter");
 const toggleIcon = document.getElementById("toggleIcon");
@@ -39,10 +55,8 @@ toggleBtn.addEventListener("click", () => {
 
 // globals
 let brewLog = [];
-let errLog = [];
-let tastingTags = [];
-let isEditing = false;
 let editingCard = null;
+let activeFilters = { roastLevel: "", sort: "", tags: [] };
 
 // tasting notes
 const commonEspressoTastingNotes = [
@@ -62,10 +76,6 @@ const commonEspressoTastingNotes = [
   "toffee",
   "spice",
 ];
-
-// Local Storage variables
-let storedBrewLog;
-let storedPreferences;
 
 // Timer state tracking object
 const timerState = {
@@ -118,6 +128,20 @@ function showConfirm(message, onConfirm) {
   });
 }
 
+// Display a list of error messages (clears the container when empty)
+const showErrors = (messages, container = errorLog) => {
+  container.innerHTML = "";
+  if (messages.length === 0) return;
+
+  const ul = document.createElement("ul");
+  messages.forEach((message) => {
+    const li = document.createElement("li");
+    li.textContent = message;
+    ul.appendChild(li);
+  });
+  container.appendChild(ul);
+};
+
 // Start the extraction timer
 const start = (event) => {
   event.preventDefault();
@@ -133,64 +157,39 @@ const start = (event) => {
 };
 
 extractionTimeDisplay.addEventListener("blur", function () {
-  errorLog.innerHTML = "";
-  errLog = [];
-  let inputString = extractionTimeDisplay.value;
-  let formattedString = validateStringInput(inputString);
+  // Ignore blur while the timer is running, it owns the display
+  if (timerState.isRunning) return;
 
-  if (formattedString === null) {
-    errLog.push(
-      "Please ensure that the timer entered is correctly formatted (e.g. 01:00.34)"
-    );
-    extractionTimeDisplay.value = "00:00.00";
-  }
-  if (errLog.length > 0) {
-    for (let i = 0; i < errLog.length; ++i) {
-      const li = document.createElement("li");
-      li.textContent = errLog[i];
-      errorLog.appendChild(li);
-    }
-    return;
+  let totalMilliseconds = parseTime(extractionTimeDisplay.value);
+
+  if (totalMilliseconds === null) {
+    showErrors([
+      "Please ensure that the timer entered is correctly formatted (e.g. 01:00.34)",
+    ]);
+    totalMilliseconds = 0;
+  } else {
+    showErrors([]);
   }
 
-  extractionTimeDisplay.value = formattedString;
-
-  let minutesArray = extractionTimeDisplay.value.split(":");
-  let minutes = minutesArray[0];
-  let secondsArray = minutesArray[1].split(".");
-  let seconds = secondsArray[0];
-  let hundredths = secondsArray[1];
-
-  let totalMilliseconds =
-    Number(minutes) * 60000 + Number(seconds) * 1000 + Number(hundredths) * 10;
-
+  extractionTimeDisplay.value = dateToStr(totalMilliseconds);
   timerState.elapsedTime = totalMilliseconds;
   timerState.startTime = totalMilliseconds;
 });
 
-const validateStringInput = (str) => {
-  // split the string into 3 (split at ":" and "." for mins, secs, and hundrths)
-  if (str === null || str === "") {
-    return null;
-  } else if (!str.includes(":") && !str.includes(".")) {
-    return null;
-  }
-  let minutesArray = str.split(":");
-  let minutes = minutesArray[0];
-  let secondsArray = minutesArray[1].split(".");
-  let seconds = secondsArray[0];
-  let hundredths = secondsArray[1];
+// Parse "MM:SS.HH" (hundredths optional) into milliseconds, or null if invalid
+const parseTime = (str) => {
+  const match = /^(\d{1,2}):(\d{1,2})(?:\.(\d{1,2}))?$/.exec(str.trim());
+  if (!match) return null;
 
-  if (isNaN(minutes) || isNaN(seconds) || isNaN(hundredths)) {
-    return null;
-  } else if (Number(seconds) >= 60 || Number(hundredths) >= 100) {
-    return null;
-  }
+  const [, minutes, seconds, hundredths = "0"] = match;
+  if (Number(seconds) >= 60) return null;
 
-  minutes = minutes.padStart(2, "0");
-  seconds = seconds.padStart(2, "0");
-  hundredths = hundredths.padStart(2, "0");
-  return `${minutes}:${seconds}.${hundredths}`;
+  // "30.5" means 30.50 seconds, so pad hundredths on the right
+  return (
+    Number(minutes) * 60000 +
+    Number(seconds) * 1000 +
+    Number(hundredths.padEnd(2, "0")) * 10
+  );
 };
 
 // Stop the timer and store elapsed time
@@ -229,7 +228,6 @@ const clearTime = (event) => {
     startStopTimer.classList.add("start-button");
     timerState.startTime = 0;
     timerState.elapsedTime = 0;
-    console.log(Date.now());
   }
 };
 
@@ -257,6 +255,83 @@ function dateToStr(date) {
   return `${formattedMinutes}:${formattedSeconds}.${formattedMillisecondToHundredths}`;
 }
 
+// Validate brew values, returning a list of { field, message }
+const validateBrew = (values) => {
+  const errors = [];
+  const add = (field, message) => errors.push({ field, message });
+
+  const checkNumber = (field, max, missingMessage, rangeMessage) => {
+    const str = String(values[field]).trim();
+    if (str === "") {
+      add(field, missingMessage);
+    } else if (!(Number(str) > 0 && Number(str) <= max)) {
+      add(field, rangeMessage);
+    }
+  };
+
+  if (values.brand.trim() === "") {
+    add("brand", "Please enter the brand of coffee.");
+  }
+
+  if (values.roastLevel === "") {
+    add("roastLevel", "Please select a roast level.");
+  }
+
+  if (values.machine.trim() === "") {
+    add("machine", "Please enter the machine you used.");
+  }
+
+  if (values.grinder.trim() === "") {
+    add("grinder", "Please enter the grinder you used.");
+  }
+
+  checkNumber(
+    "grindSize",
+    60,
+    "Please enter the grind size of the coffee you brewed.",
+    "Grind size must be greater than 0 and no more than 60."
+  );
+
+  checkNumber(
+    "doseIn",
+    60,
+    "Please enter the dose of coffee in.",
+    "Coffee dose (in) must be greater than 0 and no more than 60."
+  );
+
+  if (values.extractionMs === null) {
+    add(
+      "extractionTime",
+      "Please ensure that the extraction time is correctly formatted (e.g. 01:00.34)"
+    );
+  } else if (values.extractionMs <= 0) {
+    add("extractionTime", "Extraction time must be greater than 0.");
+  }
+
+  checkNumber(
+    "doseOut",
+    100,
+    "Please enter the amount of coffee out.",
+    "Coffee out must be greater than 0 and no more than 100."
+  );
+
+  return errors;
+};
+
+// Convert validated values into the fields stored on a brew
+const toBrewFields = (values) => ({
+  brand: values.brand.trim(),
+  roastLevel: values.roastLevel,
+  machine: values.machine.trim(),
+  grinder: values.grinder.trim(),
+  grindSize: parseFloat(values.grindSize),
+  doseIn: parseFloat(values.doseIn),
+  extractionTime: dateToStr(values.extractionMs),
+  doseOut: parseFloat(values.doseOut),
+  tasteNotes: values.tasteNotes,
+  observations: values.observations.trim(),
+});
+
 const createCoffeCardElements = () => {
   const cardActions = document.createElement("div");
   cardActions.classList.add("card-actions");
@@ -274,39 +349,83 @@ const createCoffeCardElements = () => {
   return cardActions;
 };
 
+// Build a "Label: value" line for a card, safe for any user text
+const createCardField = (label, value) => {
+  const p = document.createElement("p");
+  const strong = document.createElement("strong");
+  strong.textContent = `${label}:`;
+  p.append(strong, ` ${value}`);
+  return p;
+};
+
+// Brews matching the applied filters, in the chosen order
+const getVisibleBrews = () => {
+  const { roastLevel, sort, tags } = activeFilters;
+
+  const visible = brewLog.filter((brew) => {
+    const notes = (brew.tasteNotes || []).map((note) => note.toLowerCase());
+    return (
+      (!roastLevel || brew.roastLevel === roastLevel) &&
+      tags.every((tag) => notes.includes(tag))
+    );
+  });
+
+  // ids are creation timestamps
+  return visible.sort((a, b) => (sort === "Oldest" ? a.id - b.id : b.id - a.id));
+};
+
 // Render each saved brew as a card in the UI
 const renderCoffeeCard = () => {
   brewLogContainer.innerHTML = "";
+  // Re-rendering discards any open edit form
+  editingCard = null;
 
-  for (let i = 0; i < brewLog.length; ++i) {
-    const brew = brewLog[i];
+  const visibleBrews = getVisibleBrews();
+
+  if (visibleBrews.length === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.textContent =
+      brewLog.length === 0
+        ? "No brews saved yet."
+        : "No brews match these filters.";
+    brewLogContainer.appendChild(emptyMessage);
+    return;
+  }
+
+  for (let i = 0; i < visibleBrews.length; ++i) {
+    const brew = visibleBrews[i];
 
     const card = document.createElement("div");
     card.classList.add("brew-card");
 
     const cardActions = createCoffeCardElements();
 
-    card.innerHTML = `
-      <h3>${brew.brand}</h3>
-      <p><strong>Roast Level:</strong> ${brew.roastLevel || "N/A"}</p>
-      <p><strong>Machine:</strong> ${brew.machine || "N/A"}</p>
-      <p><strong>Grinder:</strong> ${brew.grinder || "N/A"}</p>
-      <p><strong>Grind Size:</strong> ${brew.grindSize}</p>
-      <p><strong>Coffee In:</strong> ${brew.doseIn}g</p>
-      <p><strong>Coffee Out:</strong> ${brew.doseOut}g</p>
-      <p><strong>Extraction Time:</strong> ${brew.extractionTime}</p>
-      <p><strong>Taste Notes:</strong> ${
-        brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A"
-      }</p>
-      <p><strong>Observations:</strong> ${brew.observations || "N/A"}</p>
-    `;
+    const title = document.createElement("h3");
+    title.textContent = brew.brand;
+    card.appendChild(title);
+
+    [
+      ["Roast Level", brew.roastLevel || "N/A"],
+      ["Machine", brew.machine || "N/A"],
+      ["Grinder", brew.grinder || "N/A"],
+      ["Grind Size", brew.grindSize],
+      ["Coffee In", `${brew.doseIn}g`],
+      ["Coffee Out", `${brew.doseOut}g`],
+      ["Extraction Time", brew.extractionTime],
+      [
+        "Taste Notes",
+        brew.tasteNotes?.length ? brew.tasteNotes.join(", ") : "N/A",
+      ],
+      ["Observations", brew.observations || "N/A"],
+    ].forEach(([label, value]) =>
+      card.appendChild(createCardField(label, value))
+    );
 
     card.appendChild(cardActions);
     brewLogContainer.appendChild(card);
 
     const editCancelButton = cardActions.querySelector(".edit-btn");
     const deleteButton = cardActions.querySelector(".delete-btn");
-    const saveCardButton = document.createElement("button");
 
     editCancelButton.addEventListener("click", () => {
       if (editingCard && editingCard !== card) return; // prevent multiple edits
@@ -316,87 +435,79 @@ const renderCoffeeCard = () => {
         editingCard = card;
         card.innerHTML = "";
 
-        // Editable form fields
+        // Editable form fields (values are set below so user text can't break the markup)
         const editForm = document.createElement("div");
         editForm.classList.add("edit-form");
 
         editForm.innerHTML = `
+            <div class="error-messages edit-errors"></div>
+
             <div class="edit-field">
                 <label>Brand:</label>
-                <input type="text" value="${brew.brand}" class="edit-brand" />
+                <input type="text" class="edit-brand" />
             </div>
 
             <div class="edit-field">
                 <label>Roast Level:</label>
                 <select class="edit-roastLevel">
-                <option value="Light" ${
-                  brew.roastLevel === "Light" ? "selected" : ""
-                }>Light</option>
-                <option value="Medium" ${
-                  brew.roastLevel === "Medium" ? "selected" : ""
-                }>Medium</option>
-                <option value="Dark" ${
-                  brew.roastLevel === "Dark" ? "selected" : ""
-                }>Dark</option>
+                <option value="Light">Light</option>
+                <option value="Medium">Medium</option>
+                <option value="Dark">Dark</option>
                 </select>
             </div>
 
             <div class="edit-field">
                 <label>Machine:</label>
-                <input type="text" value="${
-                  brew.machine
-                }" class="edit-machine" />
+                <input type="text" class="edit-machine" />
             </div>
 
             <div class="edit-field">
                 <label>Grinder:</label>
-                <input type="text" value="${
-                  brew.grinder
-                }" class="edit-grinder" />
+                <input type="text" class="edit-grinder" />
             </div>
 
             <div class="edit-field">
                 <label>Grind Size:</label>
-                <input type="number" value="${
-                  brew.grindSize
-                }" class="edit-grindSize" />
+                <input type="number" step="any" class="edit-grindSize" />
             </div>
 
             <div class="edit-field">
                 <label>Coffee In (g):</label>
-                <input type="number" value="${
-                  brew.doseIn
-                }" class="edit-doseIn" />
+                <input type="number" step="any" class="edit-doseIn" />
             </div>
 
             <div class="edit-field">
                 <label>Coffee Out (g):</label>
-                <input type="number" value="${
-                  brew.doseOut
-                }" class="edit-doseOut" />
+                <input type="number" step="any" class="edit-doseOut" />
             </div>
 
             <div class="edit-field">
                 <label>Extraction Time:</label>
-                <input type="text" value="${
-                  brew.extractionTime
-                }" class="edit-extractionTime" />
+                <input type="text" class="edit-extractionTime" />
             </div>
 
             <div class="edit-field">
                 <label>Taste Notes:</label>
-                <input type="text" value="${
-                  brew.tasteNotes?.join(", ") || ""
-                }" class="edit-tasteNotes" />
+                <input type="text" class="edit-tasteNotes" />
             </div>
 
             <div class="edit-field">
                 <label>Observations:</label>
-                <textarea class="edit-observations">${
-                  brew.observations || ""
-                }</textarea>
+                <textarea class="edit-observations"></textarea>
             </div>
             `;
+
+        const editInput = (name) => editForm.querySelector(`.edit-${name}`);
+        editInput("brand").value = brew.brand ?? "";
+        editInput("roastLevel").value = brew.roastLevel || "Light";
+        editInput("machine").value = brew.machine ?? "";
+        editInput("grinder").value = brew.grinder ?? "";
+        editInput("grindSize").value = brew.grindSize ?? "";
+        editInput("doseIn").value = brew.doseIn ?? "";
+        editInput("doseOut").value = brew.doseOut ?? "";
+        editInput("extractionTime").value = brew.extractionTime ?? "";
+        editInput("tasteNotes").value = brew.tasteNotes?.join(", ") || "";
+        editInput("observations").value = brew.observations || "";
 
         card.appendChild(editForm);
 
@@ -416,38 +527,45 @@ const renderCoffeeCard = () => {
         card.appendChild(actions);
 
         saveButton.addEventListener("click", () => {
+          const values = {
+            brand: editInput("brand").value,
+            roastLevel: editInput("roastLevel").value,
+            machine: editInput("machine").value,
+            grinder: editInput("grinder").value,
+            grindSize: editInput("grindSize").value,
+            doseIn: editInput("doseIn").value,
+            extractionMs: parseTime(editInput("extractionTime").value),
+            doseOut: editInput("doseOut").value,
+            tasteNotes: editInput("tasteNotes")
+              .value.split(",")
+              .map((note) => note.trim().toLowerCase())
+              .filter(Boolean),
+            observations: editInput("observations").value,
+          };
+
+          const errors = validateBrew(values);
+          editForm
+            .querySelectorAll(".input-error")
+            .forEach((input) => input.classList.remove("input-error"));
+          errors.forEach(({ field }) =>
+            editInput(field).classList.add("input-error")
+          );
+          showErrors(
+            errors.map(({ message }) => message),
+            editForm.querySelector(".edit-errors")
+          );
+          if (errors.length > 0) return;
+
           showConfirm(
             "Are you sure you want to save the changes you've made?",
             (confirmed) => {
               if (confirmed) {
-                const updatedBrew = {
-                  ...brew,
-                  brand: card.querySelector(".edit-brand").value,
-                  roastLevel: card.querySelector(".edit-roastLevel").value,
-                  machine: card.querySelector(".edit-machine").value,
-                  grinder: card.querySelector(".edit-grinder").value,
-                  grindSize: parseFloat(
-                    card.querySelector(".edit-grindSize").value
-                  ),
-                  doseIn: parseFloat(card.querySelector(".edit-doseIn").value),
-                  doseOut: parseFloat(
-                    card.querySelector(".edit-doseOut").value
-                  ),
-                  extractionTime: card.querySelector(".edit-extractionTime")
-                    .value,
-                  tasteNotes: card
-                    .querySelector(".edit-tasteNotes")
-                    .value.split(",")
-                    .map((note) => note.trim())
-                    .filter(Boolean),
-                  observations: card.querySelector(".edit-observations").value,
-                };
+                const updatedBrew = { ...brew, ...toBrewFields(values) };
 
                 brewLog = brewLog.map((entry) =>
                   entry.id === brew.id ? updatedBrew : entry
                 );
                 localStorage.setItem("brewLog", JSON.stringify(brewLog));
-                editingCard = null;
                 renderCoffeeCard();
               }
             }
@@ -457,7 +575,6 @@ const renderCoffeeCard = () => {
         cancelButton.addEventListener("click", () => {
           showConfirm("Are you sure you want to cancel?", (confirmed) => {
             if (confirmed) {
-              editingCard = null;
               renderCoffeeCard();
             }
           });
@@ -484,191 +601,174 @@ const cardDelete = (id) => {
   );
 };
 
-const createRemoveTag = (tag) => {
-  const span = document.createElement("span");
-  span.classList.add("remove-tag");
+// Wire up a tag input with autocomplete suggestions
+const createTagInput = ({ input, suggestions, list, getOptions, onDuplicate }) => {
+  let tags = [];
 
-  const text = document.createTextNode(tag + " ");
-  const button = document.createElement("button");
-  button.classList.add("remove-btn");
-  button.innerHTML = "&times;";
+  const hideSuggestions = () => {
+    suggestions.innerHTML = "";
+    suggestions.style.display = "none";
+  };
 
-  button.addEventListener("click", function () {
-    span.remove();
-    const index = tastingTags.indexOf(tag);
-    if (index > -1) {
-      tastingTags.splice(index, 1);
+  const addTag = (tag) => {
+    tags.push(tag);
+
+    const span = document.createElement("span");
+    span.classList.add("remove-tag");
+
+    const text = document.createTextNode(tag + " ");
+    const button = document.createElement("button");
+    button.type = "button"; // a default submit button would submit the form
+    button.classList.add("remove-btn");
+    button.setAttribute("aria-label", `Remove ${tag}`);
+    button.innerHTML = "&times;";
+
+    button.addEventListener("click", function () {
+      span.remove();
+      tags = tags.filter((t) => t !== tag);
+    });
+
+    span.appendChild(text);
+    span.appendChild(button);
+    list.appendChild(span);
+
+    input.value = "";
+    hideSuggestions();
+  };
+
+  input.addEventListener("keydown", (event) => {
+    input.classList.remove("input-error");
+    if (event.key !== "Enter") return;
+
+    event.preventDefault();
+    const tagToAdd = input.value.trim().toLowerCase();
+    if (!tagToAdd) return;
+
+    if (tags.includes(tagToAdd)) {
+      input.classList.add("input-error");
+      onDuplicate?.();
+      return;
     }
+    addTag(tagToAdd);
   });
 
-  span.appendChild(text);
-  span.appendChild(button);
-  tagList.appendChild(span);
+  input.addEventListener("input", function () {
+    suggestions.innerHTML = "";
+    const userInput = input.value.trim().toLowerCase();
+
+    const matches = userInput
+      ? getOptions().filter(
+          (note) => note.includes(userInput) && !tags.includes(note)
+        )
+      : [];
+
+    if (matches.length === 0) {
+      hideSuggestions();
+      return;
+    }
+
+    suggestions.style.display = "block";
+    matches.forEach((note) => {
+      const li = document.createElement("li");
+      li.classList.add("autocomplete-item");
+      li.textContent = note;
+      li.addEventListener("click", () => addTag(note));
+      suggestions.appendChild(li);
+    });
+  });
+
+  input.addEventListener("blur", function () {
+    setTimeout(hideSuggestions, 150);
+  });
+
+  return {
+    getTags: () => [...tags],
+    clear: () => {
+      tags = [];
+      list.innerHTML = "";
+    },
+  };
 };
 
 // tasting Notes Input
-tastingNotesInput.addEventListener("keydown", (event) => {
-  errorLog.innerHTML = "";
-  tastingNotesInput.classList.remove("input-error");
-  errLog = [];
-  let tagToAdd = tastingNotesInput.value.trim().toLowerCase();
-  if (event.key === "Enter") {
-    event.preventDefault();
-    if (tagToAdd && !tastingTags.includes(tagToAdd)) {
-      tastingTags.push(tagToAdd);
-
-      createRemoveTag(tagToAdd);
-
-      tastingSuggestions.style.display = "none";
-      tastingNotesInput.value = "";
-    } else {
-      errLog.push("You have already added this tag! Please enter a new tag.");
-      tastingNotesWrapper.classList.add("input-error");
-    }
-  }
+const tastingNotes = createTagInput({
+  input: tastingNotesInput,
+  suggestions: tastingSuggestions,
+  list: tagList,
+  getOptions: () => commonEspressoTastingNotes,
+  onDuplicate: () =>
+    showErrors(["You have already added this tag! Please enter a new tag."]),
 });
 
-tastingNotesInput.addEventListener("input", function () {
-  tastingSuggestions.innerHTML = "";
-  const userInput = tastingNotesInput.value.trim().toLowerCase();
-
-  if (!userInput) {
-    tastingSuggestions.style.display = "none";
-    return;
-  }
-
-  const matches = commonEspressoTastingNotes.filter((note) => {
-    return (
-      note.toLowerCase().includes(userInput) && !tastingTags.includes(note)
-    );
-  });
-
-  if (matches.length > 0) {
-    tastingSuggestions.style.display = "block";
-    matches.forEach((note) => {
-      const li = document.createElement("li");
-      li.classList.add("autocomplete-list");
-      li.textContent = note;
-      tastingSuggestions.appendChild(li);
-
-      li.addEventListener("click", function () {
-        let tagToAdd = li.textContent;
-        if (!tastingTags.includes(tagToAdd)) {
-          tastingTags.push(tagToAdd);
-          createRemoveTag(tagToAdd);
-          tastingNotesInput.value = "";
-          tastingSuggestions.innerHTML = "";
-          tastingSuggestions.style.display = "none";
-        } else {
-          tastingSuggestions.style.display = "none";
-        }
-      });
-    });
-  }
+// Filter tasting notes: suggest common notes plus any used in saved brews
+const filterTastingNotes = createTagInput({
+  input: document.getElementById("filterTastingNotesInput"),
+  suggestions: document.getElementById("filterTastingSuggestions"),
+  list: document.getElementById("filterTagList"),
+  getOptions: () => [
+    ...new Set([
+      ...commonEspressoTastingNotes,
+      ...brewLog.flatMap((brew) =>
+        (brew.tasteNotes || []).map((note) => note.toLowerCase())
+      ),
+    ]),
+  ],
 });
 
-tastingNotesInput.addEventListener("blur", function () {
-  setTimeout(() => {
-    tastingSuggestions.style.display = "none";
-  }, 150);
+applyFiltersButton.addEventListener("click", () => {
+  activeFilters = {
+    roastLevel: filterRoast.value,
+    sort: filterTime.value,
+    tags: filterTastingNotes.getTags(),
+  };
+  renderCoffeeCard();
 });
+
+// Fill the brand/roast/machine/grinder fields from saved preferences
+const applyPreferences = (preferences) => {
+  brand.value = preferences.brand;
+  roastLevel.value = preferences.roastLevel;
+  machine.value = preferences.machine;
+  grinder.value = preferences.grinder;
+};
 
 // Handle save button click: validate, log, render
 const saveCoffeeLog = (event) => {
   event.preventDefault();
-  errLog = [];
-  errorLog.innerHTML = "";
 
   // Clear previous input error highlights
-  [
-    grindSize,
-    doseIn,
-    doseOut,
-    observations,
-    tastingNotesInput,
-    brand,
-    roastLevel,
-    machine,
-    grinder,
-  ].forEach((input) => input.classList.remove("input-error"));
+  [...Object.values(formFields), tastingNotesInput].forEach((input) =>
+    input.classList.remove("input-error")
+  );
 
-  // Validation for each required field
-  if (grindSize.value.trim() === "") {
-    errLog.push("Please enter the grind size of the coffee you brewed.");
-    grindSize.classList.add("input-error");
-  } else if (grindSize.value.trim() <= 0 || grindSize.value.trim() > 60) {
-    errLog.push("Grind size must be between 1 and 60.");
-    grindSize.classList.add("input-error");
-  }
-
-  if (doseIn.value.trim() === "") {
-    errLog.push("Please enter the dose of coffee in.");
-    doseIn.classList.add("input-error");
-  } else if (doseIn.value.trim() <= 0 || doseIn.value.trim() > 60) {
-    errLog.push("Coffee dose (in) must be between 1 and 60.");
-    doseIn.classList.add("input-error");
-  }
-
-  if (timerState.elapsedTime <= 0 || extractionTimeDisplay.value <= 0) {
-    errLog.push("Extraction time must be greater than 0.");
-  }
-
-  if (doseOut.value.trim() === "" || doseOut.value <= 0) {
-    errLog.push("Please enter a valid number for coffee out.");
-    doseOut.classList.add("input-error");
-  }
-
-  if (brand.value.trim() === "") {
-    errLog.push("Please enter the brand of coffee.");
-    brand.classList.add("input-error");
-  }
-
-  if (roastLevel.value === "") {
-    errLog.push("Please select a roast level.");
-    roastLevel.classList.add("input-error");
-  }
-
-  if (machine.value.trim() === "") {
-    errLog.push("Please enter the machine you used.");
-    machine.classList.add("input-error");
-  }
-
-  if (grinder.value.trim() === "") {
-    errLog.push("Please enter the grinder you used.");
-    grinder.classList.add("input-error");
-  }
-
-  // If validation failed, display errors
-  if (errLog.length > 0) {
-    for (let i = 0; i < errLog.length; ++i) {
-      const li = document.createElement("li");
-      li.textContent = errLog[i];
-      errorLog.appendChild(li);
-    }
-    return;
-  }
-
-  // Create a new brew entry object
-  const coffeeBrew = {
-    id: Date.now(),
-    brand: brand.value.trim(),
-    roastLevel: roastLevel.value,
-    machine: machine.value.trim(),
-    grinder: grinder.value.trim(),
-    grindSize: parseFloat(grindSize.value.trim()),
-    doseIn: parseFloat(doseIn.value.trim()),
-    extractionTime: dateToStr(timerState.elapsedTime),
-    doseOut: parseFloat(doseOut.value.trim()),
-    tasteNotes: tastingTags,
-    observations: observations.value.trim(),
-  };
-
-  // last used fields for loading in
-  let lastUsed = {
+  const values = {
     brand: brand.value,
     roastLevel: roastLevel.value,
     machine: machine.value,
     grinder: grinder.value,
+    grindSize: grindSize.value,
+    doseIn: doseIn.value,
+    extractionMs: timerState.elapsedTime,
+    doseOut: doseOut.value,
+    tasteNotes: tastingNotes.getTags(),
+    observations: observations.value,
+  };
+
+  // If validation failed, display errors
+  const errors = validateBrew(values);
+  errors.forEach(({ field }) => formFields[field].classList.add("input-error"));
+  showErrors(errors.map(({ message }) => message));
+  if (errors.length > 0) return;
+
+  // Create a new brew entry object
+  const coffeeBrew = { id: Date.now(), ...toBrewFields(values) };
+
+  // last used fields for loading in
+  const lastUsed = {
+    brand: coffeeBrew.brand,
+    roastLevel: coffeeBrew.roastLevel,
+    machine: coffeeBrew.machine,
+    grinder: coffeeBrew.grinder,
   };
 
   // Save brew and update UI
@@ -681,43 +781,25 @@ const saveCoffeeLog = (event) => {
   // render card and clear form, display save message
   renderCoffeeCard();
   clearTime(event);
-  tastingTags = [];
-  tagList.innerHTML = "";
+  tastingNotes.clear();
   resetForm();
-
-  if (storedPreferences) {
-    const loadPreferences = JSON.parse(storedPreferences);
-    brand.value = loadPreferences.brand;
-    roastLevel.value = loadPreferences.roastLevel;
-    machine.value = loadPreferences.machine;
-    grinder.value = loadPreferences.grinder;
-  } else {
-    console.log("No saved preferences found in localStorage.");
-  }
+  applyPreferences(lastUsed);
 
   errorLog.innerHTML = `<p class="success-message">Coffee log saved!</p>`;
 };
 
 // load from local storage
 const loadSavedBrewsFromLocalStorage = () => {
-  storedBrewLog = localStorage.getItem("brewLog");
-  storedPreferences = localStorage.getItem("lastUsed");
+  const storedBrewLog = localStorage.getItem("brewLog");
+  const storedPreferences = localStorage.getItem("lastUsed");
 
   if (storedBrewLog) {
     brewLog = JSON.parse(storedBrewLog);
-    renderCoffeeCard();
-  } else {
-    console.log("No saved brews found in localStorage.");
   }
+  renderCoffeeCard();
 
   if (storedPreferences) {
-    const loadPreferences = JSON.parse(storedPreferences);
-    brand.value = loadPreferences.brand;
-    roastLevel.value = loadPreferences.roastLevel;
-    machine.value = loadPreferences.machine;
-    grinder.value = loadPreferences.grinder;
-  } else {
-    console.log("No saved preferences found in localStorage.");
+    applyPreferences(JSON.parse(storedPreferences));
   }
 };
 

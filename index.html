@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coffee++</title>
+    <title>Espresso++</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="app.js" defer></script>
 </head>
@@ -69,7 +69,7 @@
 
                 <div class="input-group">
                     <label for="doseOut">Coffee Out (g):</label>
-                    <input type="textarea" id="doseOut" placeholder="(e.g. 36g)" min="0" max="100" />
+                    <input type="number" id="doseOut" placeholder="(e.g. 36g)" min="0" max="100" step="any" />
                 </div>
 
                 <div class="input-group">
@@ -81,15 +81,17 @@
                         <ul id="tastingSuggestions" class="autocomplete-list"></ul>
                         <div id="tagList" class="tag-list"></div>
                     </div>
+                </div>
 
-                    <div class="input-group">
-                        <label for="observations">Additional Observations:</label>
-                        <textarea id="observations" rows="4"
-                            placeholder="Write any notes, thoughts, or observations here..."></textarea>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" id="saveButton">Save Coffee Log</button>
-                    </div>
+                <div class="input-group">
+                    <label for="observations">Additional Observations:</label>
+                    <textarea id="observations" rows="4"
+                        placeholder="Write any notes, thoughts, or observations here..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" id="saveButton">Save Coffee Log</button>
+                </div>
             </form>
         </section>
         <section class="cards-section">
