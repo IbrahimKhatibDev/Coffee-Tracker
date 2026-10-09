@@ -1,51 +1,59 @@
 # Espresso++
 
-A work-in-progress web app for tracking espresso brews, extraction times, tasting notes, and brewing parameters — with a focus on **ease of use**, **personalization**, and **local data storage**.
+A web app for tracking espresso brews, extraction times, tasting notes, and brewing parameters, with a focus on **ease of use**, **personalization**, and **local data storage**.
 
-The app lets you log your coffee brews, track extraction timers, save brewing parameters for reuse, and filter/search past brews. All data is stored in your browser’s **Local Storage**, so no server or account setup is required.
+The app lets you log your coffee brews, time extractions, reuse your usual setup, and filter past brews. All data is stored in your browser's **Local Storage**, so no server or account setup is required.
 
 ---
 
-## 🚀 Features (Current)
+## Features
 
-- **Add and Save Coffee Brews**
+- **Log Coffee Brews**
   - Brand, roast level, machine, grinder, grind size
-  - Dose in/out (grams), extraction time
+  - Dose in/out (grams) with a live brew ratio preview
   - Tasting notes with autocomplete suggestions
-  - Additional observations/notes
+  - Additional observations
 
-- **Timer Functionality**
-  - Start/stop extraction timer
-  - Manual time entry with validation
+- **Extraction Timer**
+  - Start/stop timer
+  - Manual time entry (e.g. `00:28.50`) with validation
   - Clear/reset timer
 
 - **Edit & Delete Saved Brews**
-  - Inline editing with confirmation modals
-  - Cancel edit confirmation
-  - Data updated in Local Storage
+  - Inline editing with the same validation as the main form
+  - Confirmation modals for deleting and discarding edits
 
 - **Filtering and Sorting**
-  - Filter by roast level
+  - Filter by roast level and tasting notes
   - Sort by newest/oldest
-  - Filter by tasting notes
+  - Applied filters are remembered between visits
+  - Reset filters in one click
   - Collapsible filter panel
 
-- **Dark Mode**
-  - Toggle with persistent theme preference
+- **Saved Progress**
+  - Unfinished forms are saved as a draft and restored on reload
+  - Last-used brand, roast level, machine, and grinder are pre-filled
 
-- **Persistent Preferences**
-  - Saves last-used brand, roast level, machine, and grinder
+- **Export / Import**
+  - Export all brews to a dated JSON file
+  - Import a backup; invalid entries and duplicates are skipped
 
-- **Validation & Error Handling**
-  - Highlights invalid inputs
-  - Displays error/success messages
+- **Validation & Messaging**
+  - Field-level error messages with accessible markup
+  - Sanity checks on dose, yield, ratio, and extraction time
+  - Clear success and error status messages
+
+- **Coffee-Themed Design**
+  - Warm coffee palette with roast-coloured brew cards
+  - Dark mode with a persistent preference
+  - Responsive layout and reduced-motion support
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **HTML5** for structure
-- **CSS3** (vanilla, responsive, with CSS variables for theme)
+- **CSS3** (vanilla, responsive, with CSS custom properties for theming)
 - **JavaScript (ES6+)**
   - DOM manipulation
   - Event handling
@@ -53,57 +61,51 @@ The app lets you log your coffee brews, track extraction timers, save brewing pa
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
-├── index.html # Main HTML structure
-
-├── styles.css # Theme, layout, and component styles
-
-├── app.js # App logic and event handling
-
-└── README.md # Project documentation
-
+```
+├── index.html   # Main HTML structure
+├── styles.css   # Theme, layout, and component styles
+├── app.js       # App logic and event handling
+└── README.md    # Project documentation
+```
 
 ---
 
-## 💻 Getting Started
+## Getting Started
 
 1. **Clone or Download**
    ```bash
-   git clone https://github.com/your-username/espresso-plus-plus.git
-   cd espresso-plus-plus
-   
+   git clone https://github.com/IbrahimKhatibDev/Coffee-Tracker.git
+   cd Coffee-Tracker
+   ```
+
 2. **Open in Browser**
-   - Open `index.html` in your preferred browser — no build process required.
+   - Open `index.html` in your preferred browser. No build process is required.
+   - Or serve it locally, e.g. `python3 -m http.server`, and visit `http://localhost:8000`.
 
 ---
 
-## 📌 Roadmap (Planned Features)
+## Roadmap
 
 - **Image Uploads**
-  - Add optional photo per brew
-- **Advanced Filtering**
-  - Multiple criteria at once
+  - Add an optional photo per brew
 - **Bulk Delete**
   - Select multiple brews to remove
 - **Improved Mobile UI**
   - More touch-friendly controls
-- **Export/Import**
-  - Backup or transfer brew logs
 - **React Rebuild**
   - Long-term goal to rebuild with backend support
 
 ---
 
-## 🐛 Known Issues
+## Known Issues
 
-- Tag/tasting note autocomplete may overlap inputs on smaller screens
-- Input field spacing could be improved in edit mode
-- Validation messages not yet localized
-- No confirmation for “Clear” timer action
+- Validation messages are not yet localized
+- No confirmation for the "Clear" timer action
 
 ---
 
-## 📜 License
+## License
 
-MIT License — free to use, modify, and distribute.
+MIT License: free to use, modify, and distribute.
