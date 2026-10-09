@@ -95,15 +95,6 @@ The app lets you log your coffee brews, time extractions, reuse your usual setup
 
 ---
 
-## Roadmap
-
-- **Improved Mobile UI**
-  - More touch-friendly controls
-- **React Rebuild**
-  - Long-term goal to rebuild with backend support
-
----
-
 ## Known Issues
 
 - Validation messages are not yet localized
