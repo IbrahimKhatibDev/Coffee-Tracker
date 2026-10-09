@@ -715,6 +715,13 @@ const dataUrlToPhoto = async (value) => {
   }
 };
 
+// Phones and tablets get a camera shortcut; iPadOS reports a desktop user agent,
+// so a touch-only pointer counts too
+const isMobileDevice =
+  navigator.userAgentData?.mobile ||
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+  window.matchMedia("(pointer: coarse) and (hover: none)").matches;
+
 // Build a photo picker (drop zone, preview, replace/remove) inside a field group
 const createPhotoField = (group, { id, onChange }) => {
   let photo = null;
@@ -736,6 +743,18 @@ const createPhotoField = (group, { id, onChange }) => {
   dropHint.className = "photo-drop-hint";
   dropZone.append(dropTitle, dropHint);
 
+  // A second input that opens the rear camera directly
+  const cameraInput = document.createElement("input");
+  cameraInput.type = "file";
+  cameraInput.accept = "image/*";
+  cameraInput.setAttribute("capture", "environment");
+  cameraInput.className = "photo-input";
+  cameraInput.tabIndex = -1;
+  cameraInput.setAttribute("aria-hidden", "true");
+  const cameraButton = createCardButton("Take photo", "edit-btn");
+  cameraButton.classList.add("photo-camera-btn");
+  cameraButton.hidden = !isMobileDevice;
+
   const preview = document.createElement("div");
   preview.className = "photo-preview";
   preview.hidden = true;
@@ -745,21 +764,26 @@ const createPhotoField = (group, { id, onChange }) => {
   actions.className = "photo-actions";
   const replaceButton = createCardButton("Replace", "edit-btn");
   const removeButton = createCardButton("Remove", "delete-btn");
-  actions.append(replaceButton, removeButton);
+  const retakeButton = createCardButton("Retake", "edit-btn");
+  retakeButton.hidden = !isMobileDevice;
+  actions.append(retakeButton, replaceButton, removeButton);
   preview.append(image, actions);
 
   const widget = document.createElement("div");
   widget.className = "photo-field";
-  widget.append(input, dropZone, preview);
+  widget.append(input, dropZone, cameraButton, cameraInput, preview);
   group.appendChild(widget);
 
   const setBusy = (isBusy) => {
     busy = isBusy;
     dropZone.classList.toggle("is-busy", isBusy);
+    cameraButton.disabled = isBusy;
     dropTitle.textContent = isBusy ? "Processing photo…" : "Add a photo";
     dropHint.textContent = isBusy
       ? "This only takes a moment."
-      : "Click to choose, or drag an image here";
+      : isMobileDevice
+        ? "Tap to choose from your photos"
+        : "Click to choose, or drag an image here";
   };
   setBusy(false);
 
@@ -771,6 +795,7 @@ const createPhotoField = (group, { id, onChange }) => {
     image.src = previewUrl ?? "";
     preview.hidden = !blob;
     dropZone.hidden = Boolean(blob);
+    cameraButton.hidden = Boolean(blob) || !isMobileDevice;
     // The Replace button takes over from the hidden drop zone
     input.tabIndex = blob ? -1 : 0;
   };
@@ -787,10 +812,14 @@ const createPhotoField = (group, { id, onChange }) => {
     } finally {
       setBusy(false);
       input.value = "";
+      cameraInput.value = "";
     }
   };
 
   input.addEventListener("change", () => handleFile(input.files[0]));
+  cameraInput.addEventListener("change", () => handleFile(cameraInput.files[0]));
+  cameraButton.addEventListener("click", () => cameraInput.click());
+  retakeButton.addEventListener("click", () => cameraInput.click());
   replaceButton.addEventListener("click", () => input.click());
   removeButton.addEventListener("click", () => {
     show(null);

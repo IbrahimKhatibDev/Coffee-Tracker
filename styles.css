@@ -988,8 +988,21 @@ textarea {
 }
 
 .photo-drop[hidden],
-.photo-preview[hidden] {
+.photo-preview[hidden],
+.photo-camera-btn[hidden],
+.photo-actions .card-btn[hidden] {
   display: none;
+}
+
+.photo-camera-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.photo-camera-btn:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 .photo-preview {
